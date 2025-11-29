@@ -3,8 +3,8 @@ const schedule = require('../utils/schedule.js');
 const sqlite3 = require('sqlite3').verbose();
 const functions = require('../utils/functions.js');
 const fs = require('fs');
-const { DateTime } = require('luxon');
 const { DEFAULT_TIMEZONE } = require('../config.js');
+const { localToUTC, utcToLocal } = require('../utils/functions.js');
 
 function isValidTimeFormat(input) {
     // Regular expression pattern to match "hh:mm" format
@@ -12,25 +12,6 @@ function isValidTimeFormat(input) {
 
     // Check if the input matches the pattern
     return regex.test(input);
-}
-
-// Convert local time to UTC (returns format "HH:mmZ")
-function localToUTC(localHour, timezone = DEFAULT_TIMEZONE) {
-    const [hours, minutes] = localHour.split(':').map(Number);
-    const localTime = DateTime.now()
-        .setZone(timezone)
-        .set({ hour: hours, minute: minutes, second: 0, millisecond: 0 });
-    return localTime.toUTC().toFormat('HH:mm') + 'Z';
-}
-
-// Convert UTC time to local time (accepts "HH:mm" or "HH:mmZ")
-function utcToLocal(utcHour, timezone = DEFAULT_TIMEZONE) {
-    // Remove 'Z' suffix if present
-    const cleanHour = utcHour.endsWith('Z') ? utcHour.slice(0, -1) : utcHour;
-    const [hours, minutes] = cleanHour.split(':').map(Number);
-    const utcTime = DateTime.utc()
-        .set({ hour: hours, minute: minutes, second: 0, millisecond: 0 });
-    return utcTime.setZone(timezone).toFormat('HH:mm');
 }
 
 // Function to define a report and reset hour for a registered clan

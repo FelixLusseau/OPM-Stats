@@ -7,6 +7,27 @@ const { AttachmentBuilder, EmbedBuilder } = require('discord.js');
 const { promises } = require('dns');
 const { time } = require('console');
 const sqlite3 = require('sqlite3').verbose();
+const { DateTime } = require('luxon');
+const { DEFAULT_TIMEZONE } = require('../config.js');
+
+// Convert local time to UTC (returns format "HH:mmZ")
+function localToUTC(localHour, timezone = DEFAULT_TIMEZONE) {
+    const [hours, minutes] = localHour.split(':').map(Number);
+    const localTime = DateTime.now()
+        .setZone(timezone)
+        .set({ hour: hours, minute: minutes, second: 0, millisecond: 0 });
+    return localTime.toUTC().toFormat('HH:mm') + 'Z';
+}
+
+// Convert UTC time to local time (accepts "HH:mm" or "HH:mmZ")
+function utcToLocal(utcHour, timezone = DEFAULT_TIMEZONE) {
+    // Remove 'Z' suffix if present
+    const cleanHour = utcHour.endsWith('Z') ? utcHour.slice(0, -1) : utcHour;
+    const [hours, minutes] = cleanHour.split(':').map(Number);
+    const utcTime = DateTime.utc()
+        .set({ hour: hours, minute: minutes, second: 0, millisecond: 0 });
+    return utcTime.setZone(timezone).toFormat('HH:mm');
+}
 
 // Load registered clans from the database
 async function loadRegisteredClans() {
@@ -121,10 +142,12 @@ async function ratio(RiverRace, decksRemaining, i) {
     else clan = RiverRace.clan
     // Calculate the ratio depending on the day and hour during Colosseum
     if (RiverRace.periodType == "colosseum") {
-        const d = new Date();
+        // Get current time in the default timezone (Paris)
+        const now = DateTime.now().setZone(DEFAULT_TIMEZONE);
         const weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-        const day = weekday[d.getDay()]
-        const hour = (('0' + d.getHours()).slice(-2) + ':' + ('0' + (d.getMinutes() - 1)).slice(-2)) // -1 min to not apply the new ratio during end war day report
+        const day = weekday[now.weekday === 7 ? 0 : now.weekday] // Luxon: 1=Monday, 7=Sunday; weekday array: 0=Sunday
+        // Subtract 1 minute to not apply the new ratio during end war day report
+        const hour = now.minus({ minutes: 1 }).toFormat('HH:mm')
         // Read the war hour from the db
         let warHour = ""
         try {
@@ -160,14 +183,28 @@ async function ratio(RiverRace, decksRemaining, i) {
         } catch (err) {
             console.error(err);
         }
-        if ((day == "Thursday" && hour > warHour) || (day == "Friday" && hour < warHour))
+
+        // Convert UTC hour from database to local time for comparison
+        const warHourLocal = utcToLocal(warHour);
+
+        // console.log(`[DEBUG ratio] day=${day}, hour=${hour}, warHour=${warHour}, warHourLocal=${warHourLocal}, decksRemaining=${decksRemaining}`);
+
+        if ((day == "Thursday" && hour > warHourLocal) || (day == "Friday" && hour < warHourLocal)) {
             ratio = (clan.fame / (200 - decksRemaining)).toFixed(2).toString()
-        if ((day == "Friday" && hour > warHour) || (day == "Saturday" && hour < warHour))
+            // console.log(`[DEBUG ratio] Day 1 (Thu after reset → Fri before reset): ratio=${ratio} (200 - ${decksRemaining})`)
+        }
+        if ((day == "Friday" && hour > warHourLocal) || (day == "Saturday" && hour < warHourLocal)) {
             ratio = (clan.fame / (400 - decksRemaining)).toFixed(2).toString()
-        if ((day == "Saturday" && hour > warHour) || (day == "Sunday" && hour < warHour))
+            // console.log(`[DEBUG ratio] Day 2 (Fri after reset → Sat before reset): ratio=${ratio} (400 - ${decksRemaining})`)
+        }
+        if ((day == "Saturday" && hour > warHourLocal) || (day == "Sunday" && hour < warHourLocal)) {
             ratio = (clan.fame / (600 - decksRemaining)).toFixed(2).toString()
-        if ((day == "Sunday" && hour > warHour) || (day == "Monday" && hour < warHour))
+            // console.log(`[DEBUG ratio] Day 3 (Sat after reset → Sun before reset): ratio=${ratio} (600 - ${decksRemaining})`)
+        }
+        if ((day == "Sunday" && hour > warHourLocal) || (day == "Monday" && hour < warHourLocal)) {
             ratio = (clan.fame / (800 - decksRemaining)).toFixed(2).toString()
+            // console.log(`[DEBUG ratio] Day 4 (Sun after reset → Mon before reset): ratio=${ratio} (800 - ${decksRemaining})`)
+        }
     }
     else {
         if (decksRemaining == 200)
@@ -872,5 +909,7 @@ module.exports = {
     playerHistory,
     extractDeckShopTag,
     renderCommand,
-    barChart
+    barChart,
+    localToUTC,
+    utcToLocal
 }
