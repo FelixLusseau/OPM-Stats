@@ -38,6 +38,7 @@
   - `/ffrmrotate` : Removes an entry from the rotations
   - `/ffsetrotates` : Sets the rotations of the players between the clans
   - `/fftag` : Shows the information of a not registered clan
+  - `/fftournament` : Shows information about a tournament
 
 - Scheduled war report has been added to the bot ! It will be sent every day from friday to monday at the reset hour in the clan war channel.
 - Scheduled `/ffrace` and `/ffattacks` with ping has been added to the bot ! It will be sent every day from friday to monday at 09h00 and from Thurday to Sunday at 21h00 in the clan war channels.
@@ -59,3 +60,5 @@ Old version is still available with the option `text_version: True`.
 - The bot now supports Hour change due to Daylight Saving Time for end of war day reports.
 
 - 10/11/2025 : Added Docker Image on GHCR.
+
+- 18/01/2026 : Added `/fftournament` command to show tournament information.

@@ -23,6 +23,7 @@ module.exports = {
             // + "- `/ffrmrotate` : Removes an entry from the rotations\n"
             // + "- `/ffsetrotates` : Sets the rotations of the players between the clans\n"
             + "- `/fftag` : Shows the information of a not registered clan\n"
+            + "- `/fftournament` : Shows information about a tournament\n"
             + "\u200B"
 
         const helpEmbed = functions.generateEmbed(bot);
