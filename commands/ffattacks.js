@@ -21,10 +21,10 @@ async function ffattacks(bot, api, interaction, pingBool, channel, clan, guildID
     let Players3 = "";
     let Players2 = "";
     let Players1 = "";
-    let Players4HTML = "<span style='font-size: 1.5em;'><u><b>4 attacks</u> : </b></span>\n<ul>\n";
-    let Players3HTML = "<span style='font-size: 1.5em;'><u><b>3 attacks</u> : </b></span>\n<ul>\n";
-    let Players2HTML = "<span style='font-size: 1.5em;'><u><b>2 attacks</u> : </b></span>\n<ul>\n";
-    let Players1HTML = "<span style='font-size: 1.5em;'><u><b>1 attack</u> : </b></span>\n<ul>\n";
+    let Players4HTML = "<span style='font-size: 1.5em; break-after: avoid; page-break-after: avoid;'><u><b>4 attacks</u> : </b></span>\n<ul>\n";
+    let Players3HTML = "<span style='font-size: 1.5em; break-after: avoid; page-break-after: avoid;'><u><b>3 attacks</u> : </b></span>\n<ul>\n";
+    let Players2HTML = "<span style='font-size: 1.5em; break-after: avoid; page-break-after: avoid;'><u><b>2 attacks</u> : </b></span>\n<ul>\n";
+    let Players1HTML = "<span style='font-size: 1.5em; break-after: avoid; page-break-after: avoid;'><u><b>1 attack</u> : </b></span>\n<ul>\n";
     let ping = "";
 
     let RiverRace = null
