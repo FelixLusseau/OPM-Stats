@@ -126,7 +126,7 @@ async function ffopponents(bot, api, interaction, clan) {
             result = result.replace(/{{ Opponents }}/g, opponentsText);
 
             let html = data.replace(/{{ body }}/g, result);
-            html = html.replace(/{{Background}}/g, 'Background_high')
+            html = html.replace(/{{ Background }}/g, 'Background_high')
 
             fs.writeFile('./' + tmpFile, html, 'utf8', function (err) {
                 if (err) return console.log(err);

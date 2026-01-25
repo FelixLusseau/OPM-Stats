@@ -256,7 +256,7 @@ async function getHours(bot, api, interaction) {
             let result = data2.replace(/{{ Hours }}/g, hours);
 
             let html = data.replace(/{{ body }}/g, result);
-            html = html.replace(/{{Background}}/g, 'Background_small')
+            html = html.replace(/{{ Background }}/g, 'Background_small')
 
             fs.writeFile('./' + tmpFile, html, 'utf8', function (err) {
                 if (err) return console.log(err);
