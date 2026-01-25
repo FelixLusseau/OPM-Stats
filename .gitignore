@@ -8,4 +8,6 @@ db
 *.sqlite3
 playerHistory*
 *.html
+!html/*.html
 *.png
+!html/bg/*.png
