@@ -13,17 +13,17 @@
   "dependencies": {
     "@varandas/clash-royale-api": "^2.3.0",
     "chart": "^0.1.2",
-    "discord.js": "^14.24.2",
+    "discord.js": "^14.25.1",
     "dotenv": "^17.2.3",
     "exceljs": "^4.4.0",
     "fs": "^0.0.1-security",
     "luxon": "^3.7.2",
     "node-cron": "^4.2.1",
     "node-fetch": "^3.3.2",
-    "puppeteer": "^24.27.0",
+    "puppeteer": "^24.36.0",
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.11"
   }
 }
