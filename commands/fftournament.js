@@ -239,6 +239,12 @@ async function winner(bot, api, interaction, clan) {
         return
     }
 
+    // Check if there are players in the tournament
+    if (!response.membersList || response.membersList.length === 0) {
+        interaction.editReply({ content: "No players have participated in this tournament yet!" })
+        return
+    }
+
     const clanInfo = response.membersList[0].clan ? "from " + response.membersList[0].clan.name : "";
     let Tournament_HTML = "<div style='font-size: 4em; font-weight: bold; color: #764ba2; margin: 20px 0; text-shadow: 3px 3px 6px rgba(0,0,0,0.2);'>"
         + response.membersList[0].name
@@ -262,6 +268,165 @@ async function winner(bot, api, interaction, clan) {
                 let result = data2.replace(/{{ Winner }}/g, Tournament_HTML);
                 result = result.replace(/{{ Tournament }}/g, response.name);
                 result = result.replace(/{{ H2 }}/g, "🏆 CHAMPION 🏆");
+                result = result.replace(/{{ Winner_Type }}/g, "Winner");
+
+                let html = data.replace(/{{ body }}/g, result);
+                html = html.replace(/{{ Background }}/g, 'Background_small')
+
+                fs.writeFile('./' + tmpFile, html, 'utf8', function (err) {
+                    if (err) return console.log(err);
+                });
+            });
+
+        });
+
+        await functions.renderCommand(interaction, tmpFile, 0)
+    }
+}
+
+async function passWinner(bot, api, interaction, clan) {
+    await interaction.deferReply({ ephemeral: false });
+    if (interaction.options.getString('tag')) {
+        tag = interaction.options.getString('tag');
+    }
+    let text = interaction.options.getBoolean('text_version'); // For text version too
+
+    let response = null
+    try {
+        response = await api.getTournamentByTag(tag)
+    } catch (error) {
+        functions.errorEmbed(bot, interaction, interaction.channel, error)
+        return
+    }
+
+    // Check if there are players in the tournament
+    if (!response.membersList || response.membersList.length === 0) {
+        interaction.editReply({ content: "No players have participated in this tournament yet!" })
+        return
+    }
+
+    // Random draw: select a random player from the list
+    const randomIndex = Math.floor(Math.random() * response.membersList.length);
+    const selectedPlayer = response.membersList[randomIndex];
+
+    const clanInfo = selectedPlayer.clan ? "from " + selectedPlayer.clan.name : "(No clan)";
+    let Tournament_HTML = "<div style='font-size: 4em; font-weight: bold; color: #667eea; margin: 20px 0; text-shadow: 3px 3px 6px rgba(0,0,0,0.2);'>"
+        + selectedPlayer.name
+        + "</div><br><div style='font-size: 2.5em;'>"
+        + clanInfo
+        + "<br><br><small style='font-size: 0.6em;'>Drawn from "
+        + response.membersList.length
+        + " player" + (response.membersList.length > 1 ? "s" : "") + "</small></div>";
+
+    if (interaction != null) {
+        const tmpFile = (Math.random() + 1).toString(36).substring(7) + '.html';
+        fs.readFile('./html/layout.html', 'utf8', function (err, data) {
+            if (err) {
+                return console.log(err);
+            }
+            fs.readFile('./html/fftournament-winner.html', 'utf8', function (err, data2) {
+                if (err) {
+                    return console.log(err);
+                }
+
+                let result = data2.replace(/{{ Winner }}/g, Tournament_HTML);
+                result = result.replace(/{{ Tournament }}/g, response.name);
+                result = result.replace(/{{ H2 }}/g, "🎁 PASS WINNER 🎁");
+                result = result.replace(/{{ Winner_Type }}/g, "Pass Winner");
+
+                let html = data.replace(/{{ body }}/g, result);
+                html = html.replace(/{{ Background }}/g, 'Background_small')
+
+                fs.writeFile('./' + tmpFile, html, 'utf8', function (err) {
+                    if (err) return console.log(err);
+                });
+            });
+
+        });
+
+        await functions.renderCommand(interaction, tmpFile, 0)
+    }
+}
+
+async function podium(bot, api, interaction) {
+    await interaction.deferReply({ ephemeral: false });
+    if (interaction.options.getString('tag')) {
+        tag = interaction.options.getString('tag');
+    }
+
+    let response = null
+    try {
+        response = await api.getTournamentByTag(tag)
+    } catch (error) {
+        functions.errorEmbed(bot, interaction, interaction.channel, error)
+        return
+    }
+
+    // Check if there are players in the tournament
+    if (!response.membersList || response.membersList.length === 0) {
+        interaction.editReply({ content: "No players have participated in this tournament yet!" })
+        return
+    }
+
+    // Get top 3 players
+    const top3 = response.membersList.slice(0, 3);
+
+    // Build HTML for podium
+    let Podium_HTML = "<div style='display: flex; align-items: flex-end; justify-content: center; gap: 20px; margin: 40px 0;'>";
+
+    // 2nd place (left)
+    if (top3.length >= 2) {
+        const clanInfo = top3[1].clan ? top3[1].clan.name : "No clan";
+        Podium_HTML += "<div style='text-align: center;'>";
+        Podium_HTML += "<div style='font-size: 3em; margin-bottom: 10px;'>🥈</div>";
+        Podium_HTML += "<div style='background: linear-gradient(135deg, #C0C0C0 0%, #E8E8E8 100%); padding: 30px 20px; border-radius: 15px 15px 0 0; min-width: 200px; height: 180px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 -5px 20px rgba(192,192,192,0.4);'>";
+        Podium_HTML += "<div style='font-size: 2em; font-weight: bold; color: #333; margin-bottom: 10px;'>" + top3[1].name + "</div>";
+        Podium_HTML += "<div style='font-size: 1.3em; color: #666; margin-bottom: 8px;'>" + top3[1].score + "🏅</div>";
+        Podium_HTML += "<div style='font-size: 1em; color: #999;'><i>" + clanInfo + "</i></div>";
+        Podium_HTML += "</div></div>";
+    }
+
+    // 1st place (center, taller)
+    if (top3.length >= 1) {
+        const clanInfo = top3[0].clan ? top3[0].clan.name : "No clan";
+        Podium_HTML += "<div style='text-align: center;'>";
+        Podium_HTML += "<div style='font-size: 4em; margin-bottom: 10px;'>🥇</div>";
+        Podium_HTML += "<div style='background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); padding: 40px 25px; border-radius: 15px 15px 0 0; min-width: 220px; height: 250px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 -5px 25px rgba(255,215,0,0.5);'>";
+        Podium_HTML += "<div style='font-size: 2.5em; font-weight: bold; color: #333; margin-bottom: 15px; text-shadow: 2px 2px 4px rgba(255,255,255,0.3);'>" + top3[0].name + "</div>";
+        Podium_HTML += "<div style='font-size: 1.6em; color: #333; margin-bottom: 10px; font-weight: bold;'>" + top3[0].score + "🏅</div>";
+        Podium_HTML += "<div style='font-size: 1.1em; color: #555;'><i>" + clanInfo + "</i></div>";
+        Podium_HTML += "</div></div>";
+    }
+
+    // 3rd place (right)
+    if (top3.length >= 3) {
+        const clanInfo = top3[2].clan ? top3[2].clan.name : "No clan";
+        Podium_HTML += "<div style='text-align: center;'>";
+        Podium_HTML += "<div style='font-size: 3em; margin-bottom: 10px;'>🥉</div>";
+        Podium_HTML += "<div style='background: linear-gradient(135deg, #CD7F32 0%, #E9967A 100%); padding: 25px 20px; border-radius: 15px 15px 0 0; min-width: 200px; height: 150px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 -5px 20px rgba(205,127,50,0.4);'>";
+        Podium_HTML += "<div style='font-size: 2em; font-weight: bold; color: #333; margin-bottom: 10px;'>" + top3[2].name + "</div>";
+        Podium_HTML += "<div style='font-size: 1.3em; color: #666; margin-bottom: 8px;'>" + top3[2].score + "🏅</div>";
+        Podium_HTML += "<div style='font-size: 1em; color: #999;'><i>" + clanInfo + "</i></div>";
+        Podium_HTML += "</div></div>";
+    }
+
+    Podium_HTML += "</div>";
+
+    if (interaction != null) {
+        const tmpFile = (Math.random() + 1).toString(36).substring(7) + '.html';
+        fs.readFile('./html/layout.html', 'utf8', function (err, data) {
+            if (err) {
+                return console.log(err);
+            }
+            fs.readFile('./html/fftournament-winner.html', 'utf8', function (err, data2) {
+                if (err) {
+                    return console.log(err);
+                }
+
+                let result = data2.replace(/{{ Winner }}/g, Podium_HTML);
+                result = result.replace(/{{ Tournament }}/g, response.name);
+                result = result.replace(/{{ H2 }}/g, "🏆 PODIUM 🏆");
+                result = result.replace(/{{ Winner_Type }}/g, "Podium");
 
                 let html = data.replace(/{{ body }}/g, result);
                 html = html.replace(/{{ Background }}/g, 'Background_small')
@@ -280,6 +445,7 @@ async function winner(bot, api, interaction, clan) {
 module.exports = {
     results,
     winner,
+    podium,
     data: new SlashCommandBuilder()
         .setName('fftournament')
         .setDescription('Tournaments commands !')
@@ -315,7 +481,7 @@ module.exports = {
                         .setDescription('Tag of the Tournament')
                         .setRequired(true)))
         .addSubcommand(subcommand =>
-            subcommand.setName('clan_ranking')
+            subcommand.setName('clans_ranking')
                 .setDescription('Get the clan ranking of a tournament by its tag')
                 .addStringOption(option =>
                     option.setName('tag')
@@ -333,10 +499,10 @@ module.exports = {
                 await winner(bot, api, interaction);
                 break;
             case 'pass_winner':
-                // await passWinner(bot, api, interaction);
+                await passWinner(bot, api, interaction);
                 break;
             case 'podium':
-                // await podium(bot, api, interaction);
+                await podium(bot, api, interaction);
                 break;
             case 'clans_ranking':
                 await results(bot, api, interaction, "clans");
