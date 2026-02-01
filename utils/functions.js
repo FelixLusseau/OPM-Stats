@@ -673,7 +673,7 @@ function base64ToArrayBuffer(base64) {
     return bytes.buffer;
 }
 
-async function playerHistory(url) {
+async function playerHistory(bot, channel, url) {
     // console.log('Launching Puppeteer...');
     // Launch the browser and open a new blank page
     const browser = await puppeteerInit();
@@ -693,19 +693,34 @@ async function playerHistory(url) {
     });
 
     // Navigate the page to a URL
-    await page.goto(url);
+    const response = await page.goto(url);
+    // console.log(`Statut de réponse: ${response.status()} ${response.statusText()}`);
+    // console.log('Détails de la réponse:', {
+    //     status: response.status(),
+    //     statusText: response.statusText(),
+    //     ok: response.ok(),
+    //     url: response.url(),
+    //     headers: response.headers(),
+    //     fromCache: response.fromCache(),
+    //     fromServiceWorker: response.fromServiceWorker()
+    // });
 
     // Save the page source
     // let source = await page.content();
     // fs.writeFileSync('source.html', source);
 
-    // await page.screenshot({ path: "temp.png" })
-    // await new Promise(resolve => setTimeout(resolve, 1000));
     // Show the player history
-    await Promise.all([
-        page.waitForSelector("button.ui.primary.button.cw2_history_button"),
-        page.click("button.ui.primary.button.cw2_history_button"),
-    ]);
+    try {
+        await Promise.all([
+            page.waitForSelector("button.ui.primary.button.cw2_history_button"),
+            page.click("button.ui.primary.button.cw2_history_button"),
+        ]);
+    }
+    catch (error) {
+        errorEmbed(bot, null, channel, "Unable to find the `cw2_history_button` on **RoyaleAPI** !\nResponse status: **" + response.status() + " " + response.statusText() + "**");
+        await browser.close();
+        return false;
+    }
 
     // Wait for the chart to be rendered
     // await new Promise(resolve => setTimeout(resolve, 2200));
@@ -739,6 +754,7 @@ async function playerHistory(url) {
     await page.screenshot({ path: pngPath });
 
     await browser.close();
+    return true;
 }
 
 function extractPlayerInfo(str) {

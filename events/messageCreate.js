@@ -9,14 +9,15 @@ async function royaleAPIHistory(bot, message, placeholder, tag) {
         // console.log('Status Code:', statusCode);
         if (statusCode == 200) {
             let url = "https://royaleapi.com/player/" + tag
-            await functions.playerHistory(url);
-            const playerHistoryList = new AttachmentBuilder('playerHistory.png');
-            const playerHistoryCanvas = new AttachmentBuilder('playerHistoryCanvas.png');
             await ffplayer.ffplayer(bot, api, null, message.channel, '#' + tag);
-            await message.channel.send({ content: url, files: [playerHistoryList, playerHistoryCanvas] });
-            // Remove files
-            fs.unlinkSync('./playerHistory.png')
-            fs.unlinkSync('./playerHistoryCanvas.png')
+            if (await functions.playerHistory(bot, message.channel, url)) {
+                const playerHistoryList = new AttachmentBuilder('playerHistory.png');
+                const playerHistoryCanvas = new AttachmentBuilder('playerHistoryCanvas.png');
+                await message.channel.send({ content: url, files: [playerHistoryList, playerHistoryCanvas] });
+                // Remove files
+                fs.unlinkSync('./playerHistory.png')
+                fs.unlinkSync('./playerHistoryCanvas.png')
+            }
         }
         else
             functions.errorEmbed(bot, null, message.channel, "Invalid tag");
