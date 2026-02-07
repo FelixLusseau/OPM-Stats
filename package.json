@@ -1,6 +1,6 @@
 {
   "name": "OPM-Stats",
-  "version": "4.6.0",
+  "version": "4.6.2",
   "description": "",
   "main": "OPM-Stats.js",
   "scripts": {
@@ -20,7 +20,7 @@
     "luxon": "^3.7.2",
     "node-cron": "^4.2.1",
     "node-fetch": "^3.3.2",
-    "puppeteer": "^24.36.0",
+    "puppeteer": "^24.37.2",
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {
