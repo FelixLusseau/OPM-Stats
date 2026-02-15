@@ -22,10 +22,14 @@ module.exports = {
             }
 
             try {
-                console.log(`\x1b[36m[${new Date().toISOString()}]\x1b[0m Executing ${interaction.commandName}`);
+                const subcommand = interaction.options.getSubcommand(false);
+                const commandDisplay = subcommand ? `${interaction.commandName} ${subcommand}` : interaction.commandName;
+                console.log(`\x1b[36m[${new Date().toISOString()}]\x1b[0m Executing ${commandDisplay}`);
                 await command.execute(bot, api, interaction);
             } catch (error) {
-                console.error(`\x1b[31m[${new Date().toISOString()}]\x1b[0m Error executing ${interaction.commandName}`);
+                const subcommand = interaction.options.getSubcommand(false);
+                const commandDisplay = subcommand ? `${interaction.commandName} ${subcommand}` : interaction.commandName;
+                console.error(`\x1b[31m[${new Date().toISOString()}]\x1b[0m Error executing ${commandDisplay}`);
                 console.error(error);
                 if (interaction.replied || interaction.deferred) {
                     await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });

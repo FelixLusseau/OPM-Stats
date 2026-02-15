@@ -1094,16 +1094,16 @@ async function updateBracketFromBattleLogs(session) {
         if (m.player2) allPlayers.add(m.player2.tag);
     });
 
-    console.log('🔍 DEBUG: allPlayers size:', allPlayers.size);
-    console.log('🔍 DEBUG: allPlayers:', Array.from(allPlayers));
+    // console.log('🔍 DEBUG: allPlayers size:', allPlayers.size);
+    // console.log('🔍 DEBUG: allPlayers:', Array.from(allPlayers));
 
     // Fetch battle logs for all players
     const battleLogs = new Map();
     for (const playerTag of allPlayers) {
-        console.log('🔍 DEBUG: Fetching battle log for player:', playerTag);
+        // console.log('🔍 DEBUG: Fetching battle log for player:', playerTag);
         try {
             const log = await session.api.getPlayerBattleLog(playerTag);
-            console.log('✅ DEBUG: Battle log received for', playerTag);
+            // console.log('✅ DEBUG: Battle log received for', playerTag);
             // console.log(JSON.stringify(log, null, 2));
             battleLogs.set(playerTag, log);
         } catch (error) {
@@ -1148,9 +1148,9 @@ async function updateMatchFromBattleLogs(match, battleLogs, clanTag) {
     const p1Log = battleLogs.get(p1Tag);
     const p2Log = battleLogs.get(p2Tag);
 
-    console.log(`🔍 Checking match: ${match.player1.name} vs ${match.player2.name}`);
-    console.log(`   Player 1 log entries: ${p1Log?.length || 0}`);
-    console.log(`   Player 2 log entries: ${p2Log?.length || 0}`);
+    // console.log(`🔍 DEBUG: Checking match: ${match.player1.name} vs ${match.player2.name}`);
+    // console.log(`   Player 1 log entries: ${p1Log?.length || 0}`);
+    // console.log(`   Player 2 log entries: ${p2Log?.length || 0}`);
 
     if (!p1Log || !p2Log) {
         console.log('⚠️ Missing battle logs for one or both players');
@@ -1163,17 +1163,17 @@ async function updateMatchFromBattleLogs(match, battleLogs, clanTag) {
         if (battle.type === 'clanMate') {
             clanMateCount++;
             const opponent = battle.opponent?.[0];
-            console.log(`   🤝 ClanMate battle found - opponent: ${opponent?.name || 'unknown'} (${opponent?.tag || 'no tag'})`);
+            // console.log(`   🤝 ClanMate battle found - opponent: ${opponent?.name || 'unknown'} (${opponent?.tag || 'no tag'})`);
 
             if (opponent && opponent.tag === p2Tag) {
-                console.log(`   ✅ MATCH FOUND between ${match.player1.name} and ${match.player2.name}!`);
+                // console.log(`   ✅ MATCH FOUND between ${match.player1.name} and ${match.player2.name}!`);
 
                 // Check if battle is in the correct clan (if clan filter specified)
                 if (clanTag) {
                     const battleClan = battle.team?.[0]?.clan?.tag;
-                    console.log(`   Checking clan filter: expected=${clanTag}, actual=${battleClan}`);
+                    // console.log(`   Checking clan filter: expected=${clanTag}, actual=${battleClan}`);
                     if (battleClan !== clanTag) {
-                        console.log(`   ❌ Clan mismatch, skipping this battle`);
+                        // console.log(`   ❌ Clan mismatch, skipping this battle`);
                         continue;
                     }
                 }
@@ -1183,26 +1183,26 @@ async function updateMatchFromBattleLogs(match, battleLogs, clanTag) {
                     const p1Crowns = battle.team[0]?.crowns || 0;
                     const p2Crowns = battle.opponent[0]?.crowns || 0;
 
-                    console.log(`   Score: ${match.player1.name} ${p1Crowns} - ${p2Crowns} ${match.player2.name}`);
+                    // console.log(`   Score: ${match.player1.name} ${p1Crowns} - ${p2Crowns} ${match.player2.name}`);
 
                     if (p1Crowns > p2Crowns) {
                         match.winner = match.player1;
                         match.loser = match.player2;
                         match.score = `${p1Crowns}-${p2Crowns}`;
-                        console.log(`   🏆 Winner: ${match.player1.name}`);
+                        // console.log(`   🏆 Winner: ${match.player1.name}`);
                     } else if (p2Crowns > p1Crowns) {
                         match.winner = match.player2;
                         match.loser = match.player1;
                         match.score = `${p2Crowns}-${p1Crowns}`;
-                        console.log(`   🏆 Winner: ${match.player2.name}`);
+                        // console.log(`   🏆 Winner: ${match.player2.name}`);
                     }
                     return; // Found the match, stop searching
                 }
             }
         }
     }
-    console.log(`   ℹ️ Total clanMate battles found for ${match.player1.name}: ${clanMateCount}`);
-    console.log(`   ❌ No matching battle found between these players`);
+    // console.log(`   ℹ️ DEBUG: Total clanMate battles found for ${match.player1.name}: ${clanMateCount}`);
+    // console.log(`   ❌ DEBUG: No matching battle found between these players`);
 }
 
 async function generateBracketDisplay(bot, interaction, session) {
@@ -1348,7 +1348,6 @@ function createTournamentCommand(commandName) {
                     .addStringOption(option =>
                         option.setName('clan')
                             .setDescription('Clan tag to filter friendly battles (optional)')
-                            .setAutocomplete(true)
                             .setRequired(false)))
             .addSubcommand(subcommand =>
                 subcommand.setName('clans_ranking')
