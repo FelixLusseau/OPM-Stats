@@ -162,7 +162,7 @@ async function generatePlayersRanking(bot, interaction, response, textVersion) {
 
     const Tournament_text_escaped = Tournament_text.replace(/_/g, '\\_');
 
-    const tmpFile = (Math.random() + 1).toString(36).substring(7) + '.html';
+    const tmpFile = 'tmpfiles/' + (Math.random() + 1).toString(36).substring(7) + '.html';
     fs.readFile('./html/layout.html', 'utf8', function (err, data) {
         if (err) {
             return console.log(err);
@@ -215,7 +215,7 @@ async function generateClansRanking(bot, interaction, response, textVersion) {
 
     const Tournament_text_escaped = Tournament_text.replace(/_/g, '\\_');
 
-    const tmpFile = (Math.random() + 1).toString(36).substring(7) + '.html';
+    const tmpFile = 'tmpfiles/' + (Math.random() + 1).toString(36).substring(7) + '.html';
     fs.readFile('./html/layout.html', 'utf8', function (err, data) {
         if (err) {
             return console.log(err);
@@ -272,7 +272,7 @@ async function generateWinner(bot, interaction, response) {
         + response.membersList[0].score
         + "🏅</div>";
 
-    const tmpFile = (Math.random() + 1).toString(36).substring(7) + '.html';
+    const tmpFile = 'tmpfiles/' + (Math.random() + 1).toString(36).substring(7) + '.html';
     fs.readFile('./html/layout.html', 'utf8', function (err, data) {
         if (err) {
             return console.log(err);
@@ -318,7 +318,7 @@ async function generatePassWinner(bot, interaction, response) {
         + clanInfo
         + "</div>";
 
-    const tmpFile = (Math.random() + 1).toString(36).substring(7) + '.html';
+    const tmpFile = 'tmpfiles/' + (Math.random() + 1).toString(36).substring(7) + '.html';
     fs.readFile('./html/layout.html', 'utf8', function (err, data) {
         if (err) {
             return console.log(err);
@@ -395,7 +395,7 @@ async function generatePodium(bot, interaction, response) {
 
     Podium_HTML += "</div>";
 
-    const tmpFile = (Math.random() + 1).toString(36).substring(7) + '.html';
+    const tmpFile = 'tmpfiles/' + (Math.random() + 1).toString(36).substring(7) + '.html';
     fs.readFile('./html/layout.html', 'utf8', function (err, data) {
         if (err) {
             return console.log(err);
@@ -1240,7 +1240,7 @@ async function generateBracketDisplay(bot, interaction, session) {
     </div>`;
 
     // Create HTML file
-    const tmpFile = (Math.random() + 1).toString(36).substring(7) + '.html';
+    const tmpFile = 'tmpfiles/' + (Math.random() + 1).toString(36).substring(7) + '.html';
     fs.readFile('./html/layout.html', 'utf8', function (err, data) {
         if (err) {
             return console.log(err);

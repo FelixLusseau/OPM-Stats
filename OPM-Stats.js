@@ -7,6 +7,13 @@ require("dotenv").config();
 const bot = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
 bot.commands = new Collection();
 
+// Create tmpfiles directory if it doesn't exist
+const tmpfilesDir = path.join(__dirname, 'tmpfiles');
+if (!fs.existsSync(tmpfilesDir)) {
+  fs.mkdirSync(tmpfilesDir, { recursive: true });
+  console.log('[INFO] Created tmpfiles/ directory');
+}
+
 // Initialize the CR api
 global.api = new ClashRoyaleAPI(process.env.CR_TOKEN)
 

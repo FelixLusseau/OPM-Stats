@@ -111,7 +111,7 @@ async function ffopponents(bot, api, interaction, clan) {
     // Add a blank character to the end of the string to avoid a bug with the embed (force an empty line)
     Opponents += "\u200b"
 
-    const tmpFile = (Math.random() + 1).toString(36).substring(7) + '.html';
+    const tmpFile = 'tmpfiles/' + (Math.random() + 1).toString(36).substring(7) + '.html';
     fs.readFile('./html/layout.html', 'utf8', function (err, data) {
         if (err) {
             return console.log(err);

@@ -11,3 +11,4 @@ playerHistory*
 !html/*.html
 *.png
 !html/bg*/*.png
+tmpfiles/

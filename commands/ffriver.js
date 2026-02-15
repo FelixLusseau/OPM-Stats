@@ -79,7 +79,7 @@ async function ffriver(bot, api, interaction, clan) {
     const chartUrl = `https://quickchart.io/chart?c=${encodedChart}&width=820`; // *2
     // console.log(chartUrl);
 
-    const tmpFile = (Math.random() + 1).toString(36).substring(7) + '.html';
+    const tmpFile = 'tmpfiles/' + (Math.random() + 1).toString(36).substring(7) + '.html';
     fs.readFile('./html/layout.html', 'utf8', function (err, data) {
         if (err) {
             return console.log(err);

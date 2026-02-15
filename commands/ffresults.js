@@ -55,7 +55,7 @@ async function ffresults(bot, api, interaction, clan) {
     Players = Players.replace(/_/g, '\\_') // Escape the underscores to prevent undesired italic formatting
 
     if (interaction != null) {
-        const tmpFile = (Math.random() + 1).toString(36).substring(7) + '.html';
+        const tmpFile = 'tmpfiles/' + (Math.random() + 1).toString(36).substring(7) + '.html';
         fs.readFile('./html/layout.html', 'utf8', function (err, data) {
             if (err) {
                 return console.log(err);
