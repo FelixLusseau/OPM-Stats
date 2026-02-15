@@ -810,17 +810,46 @@ async function renderCommand(interaction, tmpFile, wait) {
     // Navigate to a blank HTML page
     await page.goto(`file:${path.join(__dirname, '../' + tmpFile)}`);
 
-    // Get the current viewport size
-    const viewport = page.viewport();
+    // Get background image dimensions to calculate proportional height
+    const targetWidth = 2560;
 
-    // Set the new viewport size
-    await page.setViewport({ width: 1920, height: viewport.height });
+    // Wait a bit for the page to load
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const backgroundHeight = await page.evaluate((width) => {
+        return new Promise((resolve) => {
+            const body = document.body;
+            const bgImage = window.getComputedStyle(body).backgroundImage;
+
+            // Extract the URL from background-image CSS property
+            const urlMatch = bgImage.match(/url\(['"]?([^'"]+)['"]?\)/);
+            if (!urlMatch) {
+                resolve(null);
+                return;
+            }
+
+            const img = new Image();
+            img.onload = function () {
+                // Calculate proportional height for target width
+                const aspectRatio = this.height / this.width;
+                resolve(Math.round(width * aspectRatio));
+            };
+            img.onerror = function () {
+                resolve(null);
+            };
+            img.src = urlMatch[1];
+        });
+    }, targetWidth);
+
+    // Set the new viewport size with calculated height or fallback
+    const viewportHeight = backgroundHeight || 3624;
+    await page.setViewport({ width: targetWidth, height: viewportHeight });
 
     // Wait for the chart to be rendered
     await new Promise(resolve => setTimeout(resolve, wait));
 
     // Capture a screenshot of the rendered content
-    await page.screenshot({ path: tmpFile + ".png", fullPage: true });
+    await page.screenshot({ path: tmpFile + ".png", fullPage: true, quality: 100, type: 'jpeg' });
 
     await browser.close();
 

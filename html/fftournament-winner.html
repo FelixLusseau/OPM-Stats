@@ -1,29 +1,25 @@
-<div style="position: relative; width: 66%; text-align: center; margin: auto;">
+<div style="position: relative; width: 66%; text-align: center; margin: 30em auto;">
+    <h1 style="margin-bottom: {{ MarginBottom }}; font-size: 4em;">Tournament {{ Winner_Type }} of <b>{{ Tournament }}</b> ({{ Date }})</h1>
 
-    <h1>Tournament {{ Winner_Type }} of <b>{{ Tournament }}</b></h1>
-    <br><br><br><br>
-
-    <!-- Winner Announcement Section -->
-    <h2 style="color: #667eea; 
-                font-size: 3.0em; 
-                margin: 0 0 20px 0; 
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-                letter-spacing: 2px;">
-        {{ H2 }}
-    </h2>
-    <br>
     {{ Winner }}
-    <br>
-    <div style="margin-top: 20px; 
-                font-size: 3.0em; 
+
+    <div style="margin-top: 3em; 
+                font-size: 5em; 
                 color: #555;
                 font-style: italic;">
         ⭐ Congratulations ! ⭐
     </div>
 
-    <br><br><br>
-    <p style="text-align: left; display: flex; align-items: center; font-size: 2.25em; margin-bottom: 8em;">
-        <span style="padding: 10 px;">By <b>OPM I Féfé ⚡️</b></span>
-        <img src="https://avatars.githubusercontent.com/u/94113911?s=400&v=4" height="30 px">
+    <br><br><br><br><br>
+    <p style="text-align: left; align-items: center; font-size: 2.25em; margin-top: {{ MarginTop }}; margin-left: 3.5em;">
+        <span>By <b>OPM I Féfé ⚡️</b></span>
+        <img src="https://avatars.githubusercontent.com/u/94113911?s=400&v=4" height="30px">
+        <br>
+        <span>Background by <b>WU II WUTANG</b></span>
     </p>
 </div>
+<style>
+    body {
+        padding-left: 0;
+    }
+</style>

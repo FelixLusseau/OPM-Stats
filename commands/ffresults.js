@@ -33,7 +33,7 @@ async function ffresults(bot, api, interaction, clan) {
     }
 
     let Players = "";
-    let PlayersHTML = "<ul style='font-size: 1.8em; text-align: left;'>\n";
+    let PlayersHTML = "<ul style='font-size: 2.5em; text-align: left;'>\n";
     let RiverRace = null
     try {
         RiverRace = await api.getClanCurrentRiverRace(clan)// Get info about the River Race
@@ -69,7 +69,7 @@ async function ffresults(bot, api, interaction, clan) {
                 result = result.replace(/{{ clan }}/g, (clansDict[clan] != undefined) ? clansDict[clan] : clan);
 
                 let html = data.replace(/{{ body }}/g, result);
-                html = html.replace(/{{ Background }}/g, 'Background_normal')
+                html = html.replace(/{{ Background }}/g, 'bg/Background_small')
 
                 fs.writeFile('./' + tmpFile, html, 'utf8', function (err) {
                     if (err) return console.log(err);

@@ -44,7 +44,7 @@ async function ffmembers(bot, api, interaction, clan) {
             result = result.replace(/{{ clan }}/g, (clansDict[clan] != undefined) ? clansDict[clan] : clan);
 
             let html = data.replace(/{{ body }}/g, result);
-            html = html.replace(/{{ Background }}/g, 'Background_normal')
+            html = html.replace(/{{ Background }}/g, 'bg/Background_normal')
 
             fs.writeFile('./' + tmpFile, html, 'utf8', function (err) {
                 if (err) return console.log(err);

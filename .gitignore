@@ -10,4 +10,4 @@ playerHistory*
 *.html
 !html/*.html
 *.png
-!html/bg/*.png
+!html/bg*/*.png

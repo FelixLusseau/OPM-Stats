@@ -222,7 +222,7 @@ async function getHours(bot, api, interaction) {
                     // console.log(row);
                     // Convert UTC time to local time for display
                     const hourLocal = utcToLocal(row.Hour, DEFAULT_TIMEZONE);
-                    hours += "<tr style='line-height: 10em;'>\n<td><span style='font-size: 2.5em;'>" + clansDict[row.Clan] + "</span></td>\n<td style='font-size: 4.5em;'>" + hourLocal + "</td>\n</tr>";
+                    hours += "<tr style='line-height: 8em;'>\n<td><span style='font-size: 2em;'>" + clansDict[row.Clan] + "</span></td>\n<td style='font-size: 4em;'>" + hourLocal + "</td>\n</tr>";
                 }
             }, (err, count) => {
                 if (err) {
@@ -256,7 +256,7 @@ async function getHours(bot, api, interaction) {
             let result = data2.replace(/{{ Hours }}/g, hours);
 
             let html = data.replace(/{{ body }}/g, result);
-            html = html.replace(/{{ Background }}/g, 'Background_small')
+            html = html.replace(/{{ Background }}/g, 'bg/Background_small')
 
             fs.writeFile('./' + tmpFile, html, 'utf8', function (err) {
                 if (err) return console.log(err);

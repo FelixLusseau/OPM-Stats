@@ -76,7 +76,7 @@ async function ffriver(bot, api, interaction, clan) {
     Datas = [Datas]
     const chart = functions.barChart('bar', Labels, Datas, null, max);
     const encodedChart = encodeURIComponent(JSON.stringify(chart));
-    const chartUrl = `https://quickchart.io/chart?c=${encodedChart}`;
+    const chartUrl = `https://quickchart.io/chart?c=${encodedChart}&width=820`; // *2
     // console.log(chartUrl);
 
     const tmpFile = (Math.random() + 1).toString(36).substring(7) + '.html';
@@ -93,7 +93,7 @@ async function ffriver(bot, api, interaction, clan) {
             result = result.replace(/{{ clan }}/g, (clansDict[clan] != undefined) ? clansDict[clan] : clan);
 
             let html = data.replace(/{{ body }}/g, result);
-            html = html.replace(/{{ Background }}/g, 'Background_small')
+            html = html.replace(/{{ Background }}/g, 'bg/Background_small')
 
             fs.writeFile('./' + tmpFile, html, 'utf8', function (err) {
                 if (err) return console.log(err);

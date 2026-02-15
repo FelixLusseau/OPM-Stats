@@ -176,7 +176,7 @@ async function ffattacks(bot, api, interaction, pingBool, channel, clan, guildID
                 + "<p>\n<b>📟 Ratio</b> : "
                 + ratio
                 + "</p>\n"
-                + "<canvas id='ratio' height=200 width=350 style='position: absolute; left: 15em; top: 6em;'></canvas>\n"
+                + "<canvas id='ratio' height=200 width=350 style='position: absolute; left: 21em; top: 10em;'></canvas>\n"
                 + "<p>\n<b>📈 Estimate</b> : "
                 + estimate
                 + "</p>\n"
@@ -223,7 +223,7 @@ async function ffattacks(bot, api, interaction, pingBool, channel, clan, guildID
                 result = result.replace(/#000008/g, decksRemainingColor);
 
                 let html = data.replace(/{{ body }}/g, result);
-                html = html.replace(/{{ Background }}/g, 'Background_normal')
+                html = html.replace(/{{ Background }}/g, 'bg/Background_small')
 
                 fs.writeFile('./' + tmpFile, html, 'utf8', function (err) {
                     if (err) return console.log(err);

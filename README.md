@@ -62,3 +62,5 @@ Old version is still available with the option `text_version: True`.
 - 10/11/2025 : Added Docker Image on GHCR.
 
 - 18/01/2026 : Added `/fftournament` command to show tournament information.
+
+- 15/02/2026 : Total design remake to suppress distortion bugs and integrate new tournament backgrounds by **WU II Wutang** 🔥.
