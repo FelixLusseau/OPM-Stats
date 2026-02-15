@@ -96,7 +96,7 @@ function createCollector(interaction, sessionId) {
                 } else if (session.commandType === 'podium') {
                     generatingMessage = '⏳ Generating podium...';
                 }
-                
+
                 await i.update({ embeds: [], components: [], content: generatingMessage });
                 collector.stop('generated');
 
@@ -262,9 +262,9 @@ async function generateClansRanking(bot, interaction, response, textVersion) {
 
 async function generateWinner(bot, interaction, response) {
     const clanInfo = response.membersList[0].clan ? "from " + response.membersList[0].clan.name : "";
-    let Tournament_HTML = "<div style='font-size: 4em; font-weight: bold; color: #764ba2; margin: 20px 0; text-shadow: 3px 3px 6px rgba(0,0,0,0.2);'>"
+    let Tournament_HTML = "<div style='font-size: 5em; font-weight: bold; color: #764ba2; margin: 20px 0; text-shadow: 3px 3px 6px rgba(0,0,0,0.2);'>"
         + response.membersList[0].name
-        + "</div><br><div style='font-size: 2.5em;'>"
+        + "</div><br><div style='font-size: 3.5em;'>"
         + clanInfo
         + "<br>with "
         + response.membersList[0].score
@@ -304,9 +304,9 @@ async function generatePassWinner(bot, interaction, response) {
     const selectedPlayer = response.membersList[0];
 
     const clanInfo = selectedPlayer.clan ? "from " + selectedPlayer.clan.name : "(No clan)";
-    let Tournament_HTML = "<div style='font-size: 4em; font-weight: bold; color: #667eea; margin: 20px 0; text-shadow: 3px 3px 6px rgba(0,0,0,0.2);'>"
+    let Tournament_HTML = "<div style='font-size: 5em; font-weight: bold; color: #667eea; margin: 20px 0; text-shadow: 3px 3px 6px rgba(0,0,0,0.2);'>"
         + selectedPlayer.name
-        + "</div><br><div style='font-size: 2.5em;'>"
+        + "</div><br><div style='font-size: 3.5em;'>"
         + clanInfo
         + "</div>";
 
@@ -723,7 +723,7 @@ function createPassWinnerCollector(interaction, sessionId) {
                 );
 
                 if (availablePlayers.length === 0) {
-                    await i.update({ 
+                    await i.update({
                         embeds: [functions.generateEmbed(session.bot)
                             .setTitle(`🎁 Pass Winner: ${session.response.name}`)
                             .setDescription('All players have been excluded. No more players to draw!')],
@@ -831,12 +831,460 @@ async function podium(bot, api, interaction) {
     createCollector(interaction, sessionId);
 }
 
+// ==================== BRACKET FUNCTIONS ====================
+
+async function bracket(bot, api, interaction) {
+    await interaction.deferReply({ ephemeral: false });
+
+    const tag = interaction.options.getString('tag');
+    const clanTag = interaction.options.getString('clan');
+
+    let response = null;
+    try {
+        response = await api.getTournamentByTag(tag);
+    } catch (error) {
+        functions.errorEmbed(bot, interaction, interaction.channel, error);
+        return;
+    }
+
+    // Check if there are at least 8 players
+    if (!response.membersList || response.membersList.length < 8) {
+        await interaction.editReply({ content: `Not enough players for a bracket! Need at least 8 players, found ${response.membersList?.length || 0}.` });
+        return;
+    }
+
+    // Create session
+    const sessionId = (Math.random() + 1).toString(36).substring(2, 15);
+    tournamentSessions.set(sessionId, {
+        bot,
+        api,
+        response,
+        commandType: 'bracket',
+        excludedPlayers: [],
+        tag,
+        clanTag,
+        bracketMatches: null
+    });
+
+    // Create player selection embed
+    const selectionEmbed = functions.generateEmbed(bot)
+        .setTitle(`🏆 Tournament Bracket: ${response.name}`)
+        .setDescription(`**Step 1/2:** Select players to exclude from bracket\n\n**Total players:** ${response.membersList.length}\n**Top 8:** ${response.membersList.slice(0, 8).map((p, i) => `${i + 1}. ${p.name}`).join(', ')}\n\n*Use the menu below to select players to exclude, then click "Generate bracket"*`);
+
+    const { components } = createPlayerSelectionMenu(response.membersList, 0, sessionId, '✅ Generate bracket');
+
+    await interaction.editReply({
+        embeds: [selectionEmbed],
+        components
+    });
+
+    createBracketCollector(interaction, sessionId);
+}
+
+function createBracketCollector(interaction, sessionId) {
+    const session = tournamentSessions.get(sessionId);
+    if (!session) return;
+
+    const collector = interaction.channel.createMessageComponentCollector({
+        filter: i => i.user.id === interaction.user.id && i.customId.includes(sessionId),
+        time: 840000 // 14 minutes (marge de sécurité avant l'expiration de l'interaction à 15 min)
+    });
+
+    collector.on('collect', async i => {
+        try {
+            const [action, sid, pageStr] = i.customId.split('_').slice(1);
+            const currentPage = parseInt(pageStr) || 0;
+
+            if (action === 'prev' || action === 'next') {
+                // Handle pagination
+                const newPage = action === 'prev' ? currentPage - 1 : currentPage + 1;
+                const { components } = createPlayerSelectionMenu(session.response.membersList, newPage, sessionId, '✅ Generate bracket');
+                await i.update({ components });
+            } else if (action === 'exclude') {
+                // Store excluded players
+                session.excludedPlayers = i.values;
+                await i.deferUpdate();
+            } else if (action === 'generate') {
+                // Generate bracket
+                await i.update({ embeds: [], components: [], content: '⏳ Generating bracket...' });
+
+                // Filter excluded players
+                const filteredResponse = {
+                    ...session.response,
+                    membersList: session.response.membersList.filter(
+                        player => !session.excludedPlayers.includes(player.tag)
+                    )
+                };
+
+                // Check if we still have at least 8 players
+                if (filteredResponse.membersList.length < 8) {
+                    await i.editReply({ content: `Not enough players after exclusions! Need at least 8, have ${filteredResponse.membersList.length}.`, components: [] });
+                    collector.stop('insufficient_players');
+                    return;
+                }
+
+                // Initialize bracket with top 8 players
+                // const top8 = filteredResponse.membersList.slice(0, 8);
+                // console.log('Top 8 players for bracket:', top8);
+                const top8 = [
+                    {
+                        tag: '#RC89QUVRV',
+                        name: 'Nayo',
+                        score: 7,
+                        rank: 1,
+                        clan: { tag: '#CRV0C8', name: 'Les vieux sages', badgeId: 16000001 }
+                    },
+                    {
+                        tag: '#89GQGLRQ',
+                        name: 'Sleazy✝️就係我嘅',
+                        score: 6,
+                        rank: 3,
+                        clan: { tag: '#YPUJGCPP', name: 'Rebellion’', badgeId: 16000162 }
+                    },
+                    {
+                        tag: '#2JRRQ82QL',
+                        name: 'Legendary',
+                        score: 5,
+                        rank: 4,
+                        clan: { tag: '#2UQ2VCCC', name: 'WarxUnion 2', badgeId: 16000002 }
+                    },
+                    {
+                        tag: '#YLVJV8220',
+                        name: 'Djé 160921',
+                        score: 5,
+                        rank: 5,
+                        clan: { tag: '#PQPQGGCR', name: "Biem's", badgeId: 16000078 }
+                    },
+                    {
+                        tag: '#GQQR9PQ2',
+                        name: 'lucase',
+                        score: 5,
+                        rank: 6,
+                        clan: { tag: '#LLLJJ9PC', name: 'Valet de Trêfle', badgeId: 16000171 }
+                    },
+                    {
+                        tag: '#QVU9P9PJ9',
+                        name: 'ʳᶦᵖTECHNOBLADE⚔',
+                        score: 5,
+                        rank: 7,
+                        clan: { tag: '#QUPY8GP9', name: 'TF Brownie', badgeId: 16000171 }
+                    },
+                    {
+                        tag: '#VUVCVCRV9',
+                        name: 'Omerkf78',
+                        score: 5,
+                        rank: 8,
+                        clan: { tag: '#GJV2JJQP', name: 'Camille580', badgeId: 16000078 }
+                    },
+                    {
+                        tag: '#G0PJRYVV',
+                        name: 'Mange-Noeud❗️',
+                        score: 5,
+                        rank: 9,
+                        clan: { tag: '#2UQ2VCCC', name: 'WarxUnion 2', badgeId: 16000002 }
+                    }
+                ]
+                session.bracketMatches = initializeBracket(top8, session.clanTag);
+
+                // Generate and display bracket
+                await generateBracketDisplay(session.bot, interaction, session);
+
+                // Clear the loading message and add update button
+                const updateRow = new ActionRowBuilder().addComponents(
+                    new ButtonBuilder()
+                        .setCustomId(`tournament_updatebracket_${sessionId}`)
+                        .setLabel('🔄 Update Results')
+                        .setStyle(ButtonStyle.Primary)
+                );
+
+                await i.editReply({
+                    content: '✅ Bracket generated! Click "Update Results" to fetch latest match results from battle logs.',
+                    components: [updateRow]
+                });
+            } else if (action === 'updatebracket') {
+                await i.update({ content: '⏳ Updating bracket from battle logs...', components: [] });
+
+                // Update bracket with battle log data
+                await updateBracketFromBattleLogs(session);
+
+                // Regenerate display
+                await generateBracketDisplay(session.bot, interaction, session);
+
+                // Keep the update button
+                const updateRow = new ActionRowBuilder().addComponents(
+                    new ButtonBuilder()
+                        .setCustomId(`tournament_updatebracket_${sessionId}`)
+                        .setLabel('🔄 Update Results')
+                        .setStyle(ButtonStyle.Primary)
+                );
+
+                // Update the message with button
+                await i.editReply({
+                    content: '✅ Bracket updated with latest results! (New image sent below)',
+                    components: [updateRow]
+                });
+            }
+        } catch (error) {
+            console.error('Error handling bracket interaction:', error);
+            await i.reply({ content: 'An error occurred: ' + error.message, ephemeral: true });
+        }
+    });
+
+    collector.on('end', async (collected, reason) => {
+        if (reason === 'time') {
+            try {
+                await interaction.editReply({ components: [], content: '⏱️ Bracket session expired.' });
+            } catch (err) {
+                console.error('Error on timeout:', err);
+            }
+        }
+        tournamentSessions.delete(sessionId);
+    });
+}
+
+function initializeBracket(top8, clanTag) {
+    // Standard bracket seeding: 1v8, 4v5, 3v6, 2v7
+    const matches = {
+        quarterFinals: [
+            { id: 'A', player1: top8[0], player2: top8[7], winner: null, loser: null },
+            { id: 'B', player1: top8[3], player2: top8[4], winner: null, loser: null },
+            { id: 'C', player1: top8[2], player2: top8[5], winner: null, loser: null },
+            { id: 'D', player1: top8[1], player2: top8[6], winner: null, loser: null }
+        ],
+        semiFinals: [
+            { id: 'Semi1', player1: null, player2: null, winner: null, loser: null }, // Winner A vs Winner B
+            { id: 'Semi2', player1: null, player2: null, winner: null, loser: null }  // Winner C vs Winner D
+        ],
+        final: { id: 'Final', player1: null, player2: null, winner: null, loser: null },
+        clanTag: clanTag
+    };
+
+    return matches;
+}
+
+async function updateBracketFromBattleLogs(session) {
+    console.log('🚀 Starting updateBracketFromBattleLogs...');
+    const matches = session.bracketMatches;
+    const clanTag = matches.clanTag;
+    console.log('🏷️ Clan filter:', clanTag || '(none)');
+
+    // Get all player tags in the bracket
+    const allPlayers = new Set();
+    matches.quarterFinals.forEach(m => {
+        if (m.player1) allPlayers.add(m.player1.tag);
+        if (m.player2) allPlayers.add(m.player2.tag);
+    });
+
+    console.log('🔍 DEBUG: allPlayers size:', allPlayers.size);
+    console.log('🔍 DEBUG: allPlayers:', Array.from(allPlayers));
+
+    // Fetch battle logs for all players
+    const battleLogs = new Map();
+    for (const playerTag of allPlayers) {
+        console.log('🔍 DEBUG: Fetching battle log for player:', playerTag);
+        try {
+            const log = await session.api.getPlayerBattleLog(playerTag);
+            console.log('✅ DEBUG: Battle log received for', playerTag);
+            // console.log(JSON.stringify(log, null, 2));
+            battleLogs.set(playerTag, log);
+        } catch (error) {
+            console.error(`❌ Error fetching battle log for ${playerTag}:`, error);
+        }
+    }
+
+    // Update quarter finals
+    for (const match of matches.quarterFinals) {
+        await updateMatchFromBattleLogs(match, battleLogs, clanTag);
+    }
+
+    // Update semi-finals based on quarter-final winners
+    matches.semiFinals[0].player1 = matches.quarterFinals[0].winner;
+    matches.semiFinals[0].player2 = matches.quarterFinals[1].winner;
+    matches.semiFinals[1].player1 = matches.quarterFinals[2].winner;
+    matches.semiFinals[1].player2 = matches.quarterFinals[3].winner;
+
+    for (const match of matches.semiFinals) {
+        if (match.player1 && match.player2) {
+            await updateMatchFromBattleLogs(match, battleLogs, clanTag);
+        }
+    }
+
+    // Update final
+    matches.final.player1 = matches.semiFinals[0].winner;
+    matches.final.player2 = matches.semiFinals[1].winner;
+
+    if (matches.final.player1 && matches.final.player2) {
+        await updateMatchFromBattleLogs(matches.final, battleLogs, clanTag);
+    }
+}
+
+async function updateMatchFromBattleLogs(match, battleLogs, clanTag) {
+    if (!match.player1 || !match.player2) {
+        console.log('⚠️ Match skipped: missing players');
+        return;
+    }
+
+    const p1Tag = match.player1.tag;
+    const p2Tag = match.player2.tag;
+    const p1Log = battleLogs.get(p1Tag);
+    const p2Log = battleLogs.get(p2Tag);
+
+    console.log(`🔍 Checking match: ${match.player1.name} vs ${match.player2.name}`);
+    console.log(`   Player 1 log entries: ${p1Log?.length || 0}`);
+    console.log(`   Player 2 log entries: ${p2Log?.length || 0}`);
+
+    if (!p1Log || !p2Log) {
+        console.log('⚠️ Missing battle logs for one or both players');
+        return;
+    }
+
+    // Look for friendly battles between these two players in the same clan
+    let clanMateCount = 0;
+    for (const battle of p1Log) {
+        if (battle.type === 'clanMate') {
+            clanMateCount++;
+            const opponent = battle.opponent?.[0];
+            console.log(`   🤝 ClanMate battle found - opponent: ${opponent?.name || 'unknown'} (${opponent?.tag || 'no tag'})`);
+
+            if (opponent && opponent.tag === p2Tag) {
+                console.log(`   ✅ MATCH FOUND between ${match.player1.name} and ${match.player2.name}!`);
+
+                // Check if battle is in the correct clan (if clan filter specified)
+                if (clanTag) {
+                    const battleClan = battle.team?.[0]?.clan?.tag;
+                    console.log(`   Checking clan filter: expected=${clanTag}, actual=${battleClan}`);
+                    if (battleClan !== clanTag) {
+                        console.log(`   ❌ Clan mismatch, skipping this battle`);
+                        continue;
+                    }
+                }
+
+                // Determine winner
+                if (battle.team && battle.opponent) {
+                    const p1Crowns = battle.team[0]?.crowns || 0;
+                    const p2Crowns = battle.opponent[0]?.crowns || 0;
+
+                    console.log(`   Score: ${match.player1.name} ${p1Crowns} - ${p2Crowns} ${match.player2.name}`);
+
+                    if (p1Crowns > p2Crowns) {
+                        match.winner = match.player1;
+                        match.loser = match.player2;
+                        match.score = `${p1Crowns}-${p2Crowns}`;
+                        console.log(`   🏆 Winner: ${match.player1.name}`);
+                    } else if (p2Crowns > p1Crowns) {
+                        match.winner = match.player2;
+                        match.loser = match.player1;
+                        match.score = `${p2Crowns}-${p1Crowns}`;
+                        console.log(`   🏆 Winner: ${match.player2.name}`);
+                    }
+                    return; // Found the match, stop searching
+                }
+            }
+        }
+    }
+    console.log(`   ℹ️ Total clanMate battles found for ${match.player1.name}: ${clanMateCount}`);
+    console.log(`   ❌ No matching battle found between these players`);
+}
+
+async function generateBracketDisplay(bot, interaction, session) {
+    const matches = session.bracketMatches;
+    const response = session.response;
+
+    // Generate HTML for each match
+    const matchA_HTML = generateMatchHTML(matches.quarterFinals[0]);
+    const matchB_HTML = generateMatchHTML(matches.quarterFinals[1]);
+    const matchC_HTML = generateMatchHTML(matches.quarterFinals[2]);
+    const matchD_HTML = generateMatchHTML(matches.quarterFinals[3]);
+
+    const semi1_HTML = generateMatchHTML(matches.semiFinals[0]);
+    const semi2_HTML = generateMatchHTML(matches.semiFinals[1]);
+
+    const final_HTML = generateMatchHTML(matches.final);
+
+    // Generate champion display
+    let champion_HTML = '';
+    if (matches.final.winner) {
+        const clanInfo = matches.final.winner.clan ? matches.final.winner.clan.name : "No clan";
+        champion_HTML = `<div class="champion">
+            <div class="champion-title">🏆 CHAMPION 🏆</div>
+            <div class="champion-name">${matches.final.winner.name}</div>
+            <div style="font-size: 1.2em; margin-top: 10px;">${clanInfo}</div>
+            <div style="font-size: 1.5em; margin-top: 10px;">${matches.final.winner.score}🏅</div>
+        </div>`;
+    }
+
+    // Generate update info
+    const updateTime = new Date().toLocaleString('fr-FR', { dateStyle: 'full', timeStyle: 'medium' });
+    const update_info = `<div class="update-info">
+        Last updated: ${updateTime}<br>
+        Results are automatically fetched from friendly battles in ${matches.clanTag ? 'clan ' + matches.clanTag : 'any clan'}
+    </div>`;
+
+    // Create HTML file
+    const tmpFile = (Math.random() + 1).toString(36).substring(7) + '.html';
+    fs.readFile('./html/layout.html', 'utf8', function (err, data) {
+        if (err) {
+            return console.log(err);
+        }
+        fs.readFile('./html/ffbracket.html', 'utf8', function (err, data2) {
+            if (err) {
+                return console.log(err);
+            }
+
+            let result = data2.replace(/{{ Tournament_Name }}/g, response.name);
+            result = result.replace(/{{ Champion }}/g, champion_HTML);
+            result = result.replace(/{{ Match_A }}/g, matchA_HTML);
+            result = result.replace(/{{ Match_B }}/g, matchB_HTML);
+            result = result.replace(/{{ Match_C }}/g, matchC_HTML);
+            result = result.replace(/{{ Match_D }}/g, matchD_HTML);
+            result = result.replace(/{{ Semi_1 }}/g, semi1_HTML);
+            result = result.replace(/{{ Semi_2 }}/g, semi2_HTML);
+            result = result.replace(/{{ Final }}/g, final_HTML);
+            result = result.replace(/{{ Update_Info }}/g, update_info);
+
+            let html = data.replace(/{{ body }}/g, result);
+            html = html.replace(/{{ Background }}/g, 'Background_normal');
+
+            fs.writeFile('./' + tmpFile, html, 'utf8', function (err) {
+                if (err) return console.log(err);
+            });
+        });
+    });
+
+    // Render the bracket
+    await functions.renderCommand(interaction, tmpFile, 500);
+}
+
+function generateMatchHTML(match) {
+    if (!match.player1 || !match.player2) {
+        return '<div class="player">TBD</div><div class="player">TBD</div>';
+    }
+
+    const p1Class = match.winner?.tag === match.player1.tag ? 'winner' : (match.loser?.tag === match.player1.tag ? 'loser' : '');
+    const p2Class = match.winner?.tag === match.player2.tag ? 'winner' : (match.loser?.tag === match.player2.tag ? 'loser' : '');
+
+    const p1Score = match.winner?.tag === match.player1.tag ? (match.score ? match.score.split('-')[0] : '') : (match.score ? match.score.split('-')[1] : '');
+    const p2Score = match.winner?.tag === match.player2.tag ? (match.score ? match.score.split('-')[0] : '') : (match.score ? match.score.split('-')[1] : '');
+
+    let html = `<div class="player ${p1Class}">
+        <span class="player-name">${match.player1.name}</span>
+        ${p1Score ? `<span class="player-score">${p1Score}</span>` : ''}
+    </div>
+    <div class="player ${p2Class}">
+        <span class="player-name">${match.player2.name}</span>
+        ${p2Score ? `<span class="player-score">${p2Score}</span>` : ''}
+    </div>`;
+
+    return html;
+}
+
 function createTournamentCommand(commandName) {
     return {
         results,
         winner,
         passWinner,
         podium,
+        bracket,
         data: new SlashCommandBuilder()
             .setName(commandName)
             .setDescription('Tournaments commands !')
@@ -872,6 +1320,18 @@ function createTournamentCommand(commandName) {
                             .setDescription('Tag of the Tournament')
                             .setRequired(true)))
             .addSubcommand(subcommand =>
+                subcommand.setName('bracket')
+                    .setDescription('Generate a tournament bracket (elimination) for top 8 players')
+                    .addStringOption(option =>
+                        option.setName('tag')
+                            .setDescription('Tag of the Tournament')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('clan')
+                            .setDescription('Clan tag to filter friendly battles (optional)')
+                            .setAutocomplete(true)
+                            .setRequired(false)))
+            .addSubcommand(subcommand =>
                 subcommand.setName('clans_ranking')
                     .setDescription('Get the clan ranking of a tournament by its tag')
                     .addStringOption(option =>
@@ -894,6 +1354,9 @@ function createTournamentCommand(commandName) {
                     break;
                 case 'podium':
                     await podium(bot, api, interaction);
+                    break;
+                case 'bracket':
+                    await bracket(bot, api, interaction);
                     break;
                 case 'clans_ranking':
                     await results(bot, api, interaction);

@@ -14,7 +14,7 @@ module.exports = {
         console.log(" \\___/|_|   |_|  |_|    |____/ \\__\\__,_|\\__|___/")
 
         console.log(`\n\x1b[36m[${new Date().toISOString()}]\x1b[0m Ready! Logged in as ${bot.user.tag}`);
-        bot.user.setActivity('your stats', { type: ActivityType.Watching });
+        bot.user.setActivity('Watching your stats', { type: ActivityType.Watching });
 
         // Load the report times from the reset-hours folder and schedule the reports
         global.clansDict = {}

@@ -1,0 +1,183 @@
+<div style="position: relative; width: 66%; text-align: center; margin: auto;">
+    <style>
+        .bracket-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 60px;
+            margin: 40px auto;
+            max-width: 1600px;
+        }
+
+        .round {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 40px;
+            padding: 40px 0;
+        }
+
+        /* Quarts de finale : petits espacements entre les paires */
+        .round:first-of-type {
+            gap: 30px;
+        }
+
+        /* Ajouter un espacement entre les groupes A/B et C/D */
+        .round:first-of-type .match:nth-child(2) {
+            margin-bottom: 60px;
+        }
+
+        /* Demi-finales : grand espacement pour aligner avec les paires */
+        .round:nth-of-type(2) {
+            gap: 280px;
+        }
+
+        /* Finale : centré */
+        .round:last-of-type {
+            justify-content: center;
+        }
+
+        .match {
+            background: white;
+            border: 2px solid #764ba2;
+            border-radius: 8px;
+            padding: 10px 20px;
+            min-width: 250px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .match.final {
+            min-width: 300px;
+            border-width: 3px;
+        }
+
+        .player {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            margin: 5px 0;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            font-size: 1.2em;
+        }
+
+        .player.winner {
+            background-color: #d4edda;
+            font-weight: bold;
+        }
+
+        .player.loser {
+            opacity: 0.5;
+        }
+
+        .player-name {
+            flex-grow: 1;
+            text-align: left;
+        }
+
+        .player-score {
+            font-weight: bold;
+            margin-left: 10px;
+            color: #764ba2;
+        }
+
+        .match-title {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .champion {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 40px auto;
+            max-width: 400px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .champion-title {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .champion-name {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .update-info {
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #e3f2fd;
+            border-radius: 10px;
+            font-size: 1.1em;
+            max-width: 800px;
+        }
+
+        .connector {
+            width: 40px;
+            height: 2px;
+            background-color: #764ba2;
+            position: relative;
+        }
+    </style>
+
+    <br><br><br>
+    <h1>🏆 {{ Tournament_Name }} - Bracket 🏆</h1>
+
+    {{ Champion }}
+
+    <div class="bracket-container">
+        <!-- Round 1 (Quarterfinals) -->
+        <div class="round">
+            <div class="match">
+                <div class="match-title">Match A</div>
+                {{ Match_A }}
+            </div>
+            <div class="match">
+                <div class="match-title">Match B</div>
+                {{ Match_B }}
+            </div>
+            <div class="match">
+                <div class="match-title">Match C</div>
+                {{ Match_C }}
+            </div>
+            <div class="match">
+                <div class="match-title">Match D</div>
+                {{ Match_D }}
+            </div>
+        </div>
+
+        <!-- Round 2 (Semi-finals) -->
+        <div class="round">
+            <div class="match">
+                <div class="match-title">Semi-Final 1</div>
+                {{ Semi_1 }}
+            </div>
+            <div class="match">
+                <div class="match-title">Semi-Final 2</div>
+                {{ Semi_2 }}
+            </div>
+        </div>
+
+        <!-- Final -->
+        <div class="round">
+            <div class="match final">
+                <div class="match-title">🏆 FINALE 🏆</div>
+                {{ Final }}
+            </div>
+        </div>
+    </div>
+
+    {{ Update_Info }}
+
+    <p style="text-align: left; display: flex; align-items: center; font-size: 2.25em; margin-bottom: 8em;">
+        <span style="padding: 10 px;">By <b>OPM I Féfé ⚡️</b></span>
+        <img src="https://avatars.githubusercontent.com/u/94113911?s=400&v=4" height="30 px">
+    </p>
+</div>
