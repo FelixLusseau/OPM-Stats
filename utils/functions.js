@@ -3,6 +3,7 @@ const Excel = require('exceljs');
 const path = require('node:path');
 const https = require('node:https');
 const puppeteer = require('puppeteer');
+const randomUseragent = require('random-useragent');
 const { AttachmentBuilder, EmbedBuilder } = require('discord.js');
 const { promises } = require('dns');
 const { time } = require('console');
@@ -292,7 +293,8 @@ async function puppeteerInit() {
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
-        '--disable-gpu'
+        '--disable-gpu',
+        `--user-agent=${randomUseragent.getRandom()}`
     ];
 
     if (process.env.NIXPKGS_CONFIG) { // Check if the script is running on NixOS to not install chromium because it is not allowed by NixOS
