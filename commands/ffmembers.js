@@ -24,7 +24,7 @@ async function ffmembers(bot, api, interaction, clan) {
     // Make the string with the members' names, tags, roles, levels and trophies
     for (let i = 0; i < response.length; i++) {
         Members_text += "- **" + response[i].name + "** \n(" + response[i].tag + ", " + response[i].role + ", lvl " + response[i].expLevel + ", " + response[i].trophies + " tr)" + "\n\n"
-        Members += "<tr>\n<td>" + response[i].name + "</td>\n<td>" + response[i].tag + "</td>\n<td>" + response[i].role + "</td>\n<td>" + response[i].expLevel + "</td>\n<td>" + response[i].trophies + " 🏆</td>\n</tr>\n"
+        Members += "<tr>\n<td>" + functions.escapeHtml(response[i].name) + "</td>\n<td>" + response[i].tag + "</td>\n<td>" + response[i].role + "</td>\n<td>" + response[i].expLevel + "</td>\n<td>" + response[i].trophies + " 🏆</td>\n</tr>\n"
     }
     Members_text = Members_text.replace(/_/g, '\\_') // Escape the underscores to prevent undesired italic formatting
     // console.log(Members_text)
@@ -41,7 +41,7 @@ async function ffmembers(bot, api, interaction, clan) {
 
             let result = data2.replace(/{{ Players }}/g, Members);
             result = result.replace(/{{ nb }}/g, response.length);
-            result = result.replace(/{{ clan }}/g, (clansDict[clan] != undefined) ? clansDict[clan] : clan);
+            result = result.replace(/{{ clan }}/g, functions.escapeHtml((clansDict[clan] != undefined) ? clansDict[clan] : clan));
 
             let html = data.replace(/{{ body }}/g, result);
             html = html.replace(/{{ Background }}/g, 'bg/Background_normal')

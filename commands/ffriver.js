@@ -90,7 +90,7 @@ async function ffriver(bot, api, interaction, clan) {
             }
 
             let result = data2.replace(/{{ Chart }}/g, chartUrl);
-            result = result.replace(/{{ clan }}/g, (clansDict[clan] != undefined) ? clansDict[clan] : clan);
+            result = result.replace(/{{ clan }}/g, functions.escapeHtml((clansDict[clan] != undefined) ? clansDict[clan] : clan));
 
             let html = data.replace(/{{ body }}/g, result);
             html = html.replace(/{{ Background }}/g, 'bg/Background_small')

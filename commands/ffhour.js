@@ -222,7 +222,7 @@ async function getHours(bot, api, interaction) {
                     // console.log(row);
                     // Convert UTC time to local time for display
                     const hourLocal = utcToLocal(row.Hour, DEFAULT_TIMEZONE);
-                    hours += "<tr style='line-height: 8em;'>\n<td><span style='font-size: 2em;'>" + clansDict[row.Clan] + "</span></td>\n<td style='font-size: 4em;'>" + hourLocal + "</td>\n</tr>";
+                    hours += "<tr style='line-height: 8em;'>\n<td><span style='font-size: 2em;'>" + functions.escapeHtml(clansDict[row.Clan]) + "</span></td>\n<td style='font-size: 4em;'>" + hourLocal + "</td>\n</tr>";
                 }
             }, (err, count) => {
                 if (err) {

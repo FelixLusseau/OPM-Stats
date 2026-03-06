@@ -174,7 +174,7 @@ async function generatePlayersRanking(bot, interaction, response, textVersion) {
 
             let result = data2.replace(/{{ Results }}/g, Tournament_HTML);
             result = result.replace(/{{ Infos }}/g, Infos_HTML);
-            result = result.replace(/{{ Tournament_Name }}/g, response.name);
+            result = result.replace(/{{ Tournament_Name }}/g, functions.escapeHtml(response.name));
 
             let html = data.replace(/{{ body }}/g, result);
             html = html.replace(/{{ Columns }}/g, 3);
@@ -227,7 +227,7 @@ async function generateClansRanking(bot, interaction, response, textVersion) {
 
             let result = data2.replace(/{{ Results }}/g, Tournament_HTML);
             result = result.replace(/{{ Infos }}/g, Infos_HTML);
-            result = result.replace(/{{ Tournament_Name }}/g, response.name);
+            result = result.replace(/{{ Tournament_Name }}/g, functions.escapeHtml(response.name));
 
             let html = data.replace(/{{ body }}/g, result);
             html = html.replace(/{{ Columns }}/g, 2);
@@ -263,9 +263,9 @@ async function generateClansRanking(bot, interaction, response, textVersion) {
 }
 
 async function generateWinner(bot, interaction, response) {
-    const clanInfo = response.membersList[0].clan ? "from " + response.membersList[0].clan.name : "";
+    const clanInfo = response.membersList[0].clan ? "from " + functions.escapeHtml(response.membersList[0].clan.name) : "";
     let Tournament_HTML = "<div style='font-size: 8em; font-weight: bold; color: #764ba2; margin: 20px 0; text-shadow: 3px 3px 6px rgba(0,0,0,0.2);'>"
-        + response.membersList[0].name
+        + functions.escapeHtml(response.membersList[0].name)
         + "</div><br><div style='font-size: 4.5em;'>"
         + clanInfo
         + "<br>with "
@@ -283,7 +283,7 @@ async function generateWinner(bot, interaction, response) {
             }
 
             let result = data2.replace(/{{ Winner }}/g, Tournament_HTML);
-            result = result.replace(/{{ Tournament }}/g, response.name);
+            result = result.replace(/{{ Tournament }}/g, functions.escapeHtml(response.name));
             // Format date from "20250215T120000" to readable format
             const startDateStr = response.startedTime.replace(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/, '$1-$2-$3T$4:$5:$6');
             const formattedDate = new Date(startDateStr).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -311,9 +311,9 @@ async function generatePassWinner(bot, interaction, response) {
     // The winner is already determined (first player in membersList)
     const selectedPlayer = response.membersList[0];
 
-    const clanInfo = selectedPlayer.clan ? "from " + selectedPlayer.clan.name : "(No clan)";
+    const clanInfo = selectedPlayer.clan ? "from " + functions.escapeHtml(selectedPlayer.clan.name) : "(No clan)";
     let Tournament_HTML = "<div style='font-size: 8em; font-weight: bold; color: #764ba2; margin: 20px 0; text-shadow: 3px 3px 6px rgba(0,0,0,0.2);'>"
-        + selectedPlayer.name
+        + functions.escapeHtml(selectedPlayer.name)
         + "</div><br><div style='font-size: 4.5em;'>"
         + clanInfo
         + "</div>";
@@ -329,7 +329,7 @@ async function generatePassWinner(bot, interaction, response) {
             }
 
             let result = data2.replace(/{{ Winner }}/g, Tournament_HTML);
-            result = result.replace(/{{ Tournament }}/g, response.name);
+            result = result.replace(/{{ Tournament }}/g, functions.escapeHtml(response.name));
             // Format date from "20250215T120000" to readable format
             const startDateStr = response.startedTime.replace(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/, '$1-$2-$3T$4:$5:$6');
             const formattedDate = new Date(startDateStr).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -359,11 +359,11 @@ async function generatePodium(bot, interaction, response) {
 
     // 2nd place (left)
     if (top3.length >= 2) {
-        const clanInfo = top3[1].clan ? top3[1].clan.name : "No clan";
+        const clanInfo = top3[1].clan ? functions.escapeHtml(top3[1].clan.name) : "No clan";
         Podium_HTML += "<div style='text-align: center;'>";
         Podium_HTML += "<div style='font-size: 4em; margin-bottom: 15px;'>🥈</div>";
         Podium_HTML += "<div style='background: linear-gradient(135deg, #C0C0C0 0%, #E8E8E8 100%); padding: 40px 30px; border-radius: 20px 20px 0 0; min-width: 280px; height: 240px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 -5px 20px rgba(192,192,192,0.4);'>";
-        Podium_HTML += "<div style='font-size: 2.5em; font-weight: bold; color: #333; margin-bottom: 15px;'>" + top3[1].name + "</div>";
+        Podium_HTML += "<div style='font-size: 2.5em; font-weight: bold; color: #333; margin-bottom: 15px;'>" + functions.escapeHtml(top3[1].name) + "</div>";
         Podium_HTML += "<div style='font-size: 1.8em; color: #666; margin-bottom: 10px;'>" + top3[1].score + "🏅</div>";
         Podium_HTML += "<div style='font-size: 1.3em; color: #999;'><i>" + clanInfo + "</i></div>";
         Podium_HTML += "</div></div>";
@@ -371,11 +371,11 @@ async function generatePodium(bot, interaction, response) {
 
     // 1st place (center, taller)
     if (top3.length >= 1) {
-        const clanInfo = top3[0].clan ? top3[0].clan.name : "No clan";
+        const clanInfo = top3[0].clan ? functions.escapeHtml(top3[0].clan.name) : "No clan";
         Podium_HTML += "<div style='text-align: center;'>";
         Podium_HTML += "<div style='font-size: 5em; margin-bottom: 15px;'>🥇</div>";
         Podium_HTML += "<div style='background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); padding: 50px 35px; border-radius: 20px 20px 0 0; min-width: 320px; height: 340px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 -5px 25px rgba(255,215,0,0.5);'>";
-        Podium_HTML += "<div style='font-size: 3em; font-weight: bold; color: #333; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(255,255,255,0.3);'>" + top3[0].name + "</div>";
+        Podium_HTML += "<div style='font-size: 3em; font-weight: bold; color: #333; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(255,255,255,0.3);'>" + functions.escapeHtml(top3[0].name) + "</div>";
         Podium_HTML += "<div style='font-size: 2.2em; color: #333; margin-bottom: 15px; font-weight: bold;'>" + top3[0].score + "🏅</div>";
         Podium_HTML += "<div style='font-size: 1.5em; color: #555;'><i>" + clanInfo + "</i></div>";
         Podium_HTML += "</div></div>";
@@ -383,11 +383,11 @@ async function generatePodium(bot, interaction, response) {
 
     // 3rd place (right)
     if (top3.length >= 3) {
-        const clanInfo = top3[2].clan ? top3[2].clan.name : "No clan";
+        const clanInfo = top3[2].clan ? functions.escapeHtml(top3[2].clan.name) : "No clan";
         Podium_HTML += "<div style='text-align: center;'>";
         Podium_HTML += "<div style='font-size: 4em; margin-bottom: 15px;'>🥉</div>";
         Podium_HTML += "<div style='background: linear-gradient(135deg, #CD7F32 0%, #E9967A 100%); padding: 35px 30px; border-radius: 20px 20px 0 0; min-width: 280px; height: 200px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 -5px 20px rgba(205,127,50,0.4);'>";
-        Podium_HTML += "<div style='font-size: 2.5em; font-weight: bold; color: #333; margin-bottom: 15px;'>" + top3[2].name + "</div>";
+        Podium_HTML += "<div style='font-size: 2.5em; font-weight: bold; color: #333; margin-bottom: 15px;'>" + functions.escapeHtml(top3[2].name) + "</div>";
         Podium_HTML += "<div style='font-size: 1.8em; color: #666; margin-bottom: 10px;'>" + top3[2].score + "🏅</div>";
         Podium_HTML += "<div style='font-size: 1.3em; color: #999;'><i>" + clanInfo + "</i></div>";
         Podium_HTML += "</div></div>";
@@ -406,7 +406,7 @@ async function generatePodium(bot, interaction, response) {
             }
 
             let result = data2.replace(/{{ Winner }}/g, Podium_HTML);
-            result = result.replace(/{{ Tournament }}/g, response.name);
+            result = result.replace(/{{ Tournament }}/g, functions.escapeHtml(response.name));
             // Format date from "20250215T120000" to readable format
             const startDateStr = response.startedTime.replace(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/, '$1-$2-$3T$4:$5:$6');
             const formattedDate = new Date(startDateStr).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -506,9 +506,10 @@ function playerResults(response) {
     let Tournament_HTML = "<ol style='font-size: 1.4em; text-align: left;'>\n";
     for (let i = 0; i < response.membersList.length; i++) {
         const clanInfo = response.membersList[i].clan ? " (" + response.membersList[i].clan.name + ")" : "(No clan)";
+        const clanInfoHTML = response.membersList[i].clan ? " (" + functions.escapeHtml(response.membersList[i].clan.name) + ")" : "(No clan)";
         const pointText = response.membersList[i].score >= 2 ? "pts" : "pt";
         Tournament_text += (i + 1) + ". **" + response.membersList[i].name + "**" + clanInfo + " - **" + response.membersList[i].score + " " + pointText + "**\n"
-        Tournament_HTML += "<li style='margin-bottom: 20px;'><b>" + response.membersList[i].name + "</b> - <b>" + response.membersList[i].score + "🏅" + "</b><br><small>" + clanInfo + "</small></li>\n"
+        Tournament_HTML += "<li style='margin-bottom: 20px;'><b>" + functions.escapeHtml(response.membersList[i].name) + "</b> - <b>" + response.membersList[i].score + "🏅" + "</b><br><small>" + clanInfoHTML + "</small></li>\n"
     }
     Tournament_HTML += "</ol>\n"
     return { Tournament_text, Tournament_HTML };
@@ -550,7 +551,7 @@ function clanResults(response) {
         const clan = clansArray[i];
         const pointText = clan.totalScore >= 2 ? "pts" : "pt";
         Tournament_text += (i + 1) + ". **" + clan.name + "** (" + clan.playerCount + " players) - **" + clan.totalScore + " " + pointText + "**\n"
-        Tournament_HTML += "<li style='margin-bottom: 20px;'><b>" + clan.name + "</b> - <b>" + clan.totalScore + "🏅" + "</b><br><small>" + clan.playerCount + " player" + (clan.playerCount > 1 ? "s" : "") + "</small></li>\n"
+        Tournament_HTML += "<li style='margin-bottom: 20px;'><b>" + functions.escapeHtml(clan.name) + "</b> - <b>" + clan.totalScore + "🏅" + "</b><br><small>" + clan.playerCount + " player" + (clan.playerCount > 1 ? "s" : "") + "</small></li>\n"
     }
 
     // Add unranked players without clan

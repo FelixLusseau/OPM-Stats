@@ -79,21 +79,21 @@ async function ffattacks(bot, api, interaction, pingBool, channel, clan, guildID
                 switch (decksRemainingToday) {
                     case 4:
                         Players4 += members[i].name + "\n";
-                        Players4HTML += "<li style='margin-bottom: 20px;'>" + members[i].name + "</li>\n"
+                        Players4HTML += "<li style='margin-bottom: 20px;'>" + functions.escapeHtml(members[i].name) + "</li>\n"
                         break;
                     case 3:
                         Players3 += members[i].name + "\n";
-                        Players3HTML += "<li style='margin-bottom: 20px;'>" + members[i].name + "</li>\n"
+                        Players3HTML += "<li style='margin-bottom: 20px;'>" + functions.escapeHtml(members[i].name) + "</li>\n"
                         remainingPlayers--
                         break;
                     case 2:
                         Players2 += members[i].name + "\n";
-                        Players2HTML += "<li style='margin-bottom: 20px;'>" + members[i].name + "</li>\n"
+                        Players2HTML += "<li style='margin-bottom: 20px;'>" + functions.escapeHtml(members[i].name) + "</li>\n"
                         remainingPlayers--
                         break;
                     case 1:
                         Players1 += members[i].name + "\n";
-                        Players1HTML += "<li style='margin-bottom: 20px;'>" + members[i].name + "</li>\n"
+                        Players1HTML += "<li style='margin-bottom: 20px;'>" + functions.escapeHtml(members[i].name) + "</li>\n"
                         remainingPlayers--
                         break;
                 }
@@ -122,15 +122,15 @@ async function ffattacks(bot, api, interaction, pingBool, channel, clan, guildID
             switch (decksRemainingToday) {
                 case 3:
                     Players3 += player.name + " **(out of the clan !!) " + "<a:Alert:1186367132263522455>" + "**\n";
-                    Players3HTML += "<li style='margin-bottom: 20px;'>" + player.name + " <b>(out of the clan !!)</b></li>\n"
+                    Players3HTML += "<li style='margin-bottom: 20px;'>" + functions.escapeHtml(player.name) + " <b>(out of the clan !!)</b></li>\n"
                     break;
                 case 2:
                     Players2 += player.name + " **(out of the clan !!) " + "<a:Alert:1186367132263522455>" + "**\n";
-                    Players2HTML += "<li style='margin-bottom: 20px;'>" + player.name + " <b>(out of the clan !!)</b></li>\n"
+                    Players2HTML += "<li style='margin-bottom: 20px;'>" + functions.escapeHtml(player.name) + " <b>(out of the clan !!)</b></li>\n"
                     break;
                 case 1:
                     Players1 += player.name + " **(out of the clan !!) " + "<a:Alert:1186367132263522455>" + "**\n";
-                    Players1HTML += "<li style='margin-bottom: 20px;'>" + player.name + " <b>(out of the clan !!)</b></li>\n"
+                    Players1HTML += "<li style='margin-bottom: 20px;'>" + functions.escapeHtml(player.name) + " <b>(out of the clan !!)</b></li>\n"
                     break;
             }
             remainingPlayers--
@@ -214,7 +214,7 @@ async function ffattacks(bot, api, interaction, pingBool, channel, clan, guildID
                 }
 
                 let result = data2.replace(/{{ Attacks }}/g, attacksHTML);
-                result = result.replace(/{{ clan }}/g, (clansDict[clan] != undefined) ? clansDict[clan] : clan);
+                result = result.replace(/{{ clan }}/g, functions.escapeHtml((clansDict[clan] != undefined) ? clansDict[clan] : clan));
                 result = result.replace(/{{ Numbers }}/g, numbersHTML);
                 result = result.replace(/{{ ratio }}/g, ratio);
                 result = result.replace(/900%/g, (100 - remainingPlayers * 2).toString() + "%");

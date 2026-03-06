@@ -48,7 +48,7 @@ async function ffresults(bot, api, interaction, clan) {
         if ((RiverRace.clan.participants[j].decksUsed > 0 && RiverRace.clan.participants[j].fame > 0) || (include_zero_players && isInClan(members, RiverRace.clan.participants[j]))) {
             // Make a list of the players who have attacked and their fame
             Players += "- " + RiverRace.clan.participants[j].name + " : **" + RiverRace.clan.participants[j].fame + " pts**\n"
-            PlayersHTML += "<li style='margin-bottom: 20px;'>" + RiverRace.clan.participants[j].name + " : <b>" + RiverRace.clan.participants[j].fame + " 🏅</b></li>\n"
+            PlayersHTML += "<li style='margin-bottom: 20px;'>" + functions.escapeHtml(RiverRace.clan.participants[j].name) + " : <b>" + RiverRace.clan.participants[j].fame + " 🏅</b></li>\n"
         }
     }
     PlayersHTML += "</ul>\n"
@@ -66,7 +66,7 @@ async function ffresults(bot, api, interaction, clan) {
                 }
 
                 let result = data2.replace(/{{ Results }}/g, PlayersHTML);
-                result = result.replace(/{{ clan }}/g, (clansDict[clan] != undefined) ? clansDict[clan] : clan);
+                result = result.replace(/{{ clan }}/g, functions.escapeHtml((clansDict[clan] != undefined) ? clansDict[clan] : clan));
 
                 let html = data.replace(/{{ body }}/g, result);
                 html = html.replace(/{{ Background }}/g, 'bg/Background_small')

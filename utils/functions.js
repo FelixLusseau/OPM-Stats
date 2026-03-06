@@ -267,7 +267,7 @@ function generateHtmlTableFromWorksheet(worksheet, family) {
                 if (cell.fill && cell.fill.fgColor && cell.fill.fgColor.argb) {
                     cellColor = cell.fill.fgColor.argb.substring(2);
                 }
-                const cellValue = cell.text || '';
+                const cellValue = escapeHtml(cell.text || '');
                 if (cell._mergeCount === 1 && cell.type != 1) { // Vertical merged cell
                     html += `<td style="background-color:#${cellColor}; text-align: center; border-right: 1px solid black; white-space: nowrap; padding-left: 10px; padding-right: 10px;" rowspan="2">${cellValue}</td>\n`;
                 } else if (cell._mergeCount === 0 && cell.type == 1) {
@@ -851,7 +851,7 @@ async function renderCommand(interaction, tmpFile, wait) {
     await new Promise(resolve => setTimeout(resolve, wait));
 
     // Capture a screenshot of the rendered content
-    await page.screenshot({ path: tmpFile + ".png", fullPage: true, quality: 100, type: 'jpeg' });
+    await page.screenshot({ path: tmpFile + ".png", fullPage: true, quality: 90, type: 'jpeg' });
 
     await browser.close();
 
@@ -942,6 +942,19 @@ function barChart(type, Labels, Datas, seasons, max) {
     return chart;
 }
 
+// Escape HTML special characters to prevent HTML injection
+function escapeHtml(text) {
+    if (!text) return text;
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    };
+    return text.toString().replace(/[&<>"']/g, m => map[m]);
+}
+
 module.exports = {
     loadRegisteredClans,
     isValidTag,
@@ -958,5 +971,6 @@ module.exports = {
     renderCommand,
     barChart,
     localToUTC,
-    utcToLocal
+    utcToLocal,
+    escapeHtml
 }

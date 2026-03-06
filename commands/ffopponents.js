@@ -47,7 +47,7 @@ async function ffopponents(bot, api, interaction, clan) {
         }
         // Make the string from the clans' names, tags, locations, trophies and numbers of members
         Opponents += "- __**" + RiverRace.clans[i].name + "**__ " + " :\n" + RiverRace.clans[i].tag + ", " + clan.location.name + ", " + clan.clanWarTrophies + " tr, " + clan.members + " members\n\n"
-        opponentsText += "<b><span style='font-size: 1.7em;'>" + RiverRace.clans[i].name + " : </span></b>" + RiverRace.clans[i].tag + ", " + clan.location.name + ", " + clan.clanWarTrophies + " tr, " + clan.members + " members\n\n<br>"
+        opponentsText += "<b><span style='font-size: 1.7em;'>" + functions.escapeHtml(RiverRace.clans[i].name) + " : </span></b>" + RiverRace.clans[i].tag + ", " + functions.escapeHtml(clan.location.name) + ", " + clan.clanWarTrophies + " tr, " + clan.members + " members\n\n<br>"
         let history = await functions.fetchHist(RiverRace.clans[i].tag.substring(1)); // Get the clans' history from RoyaleAPI
         let clanScores = []
         let ranksScores = []
@@ -122,7 +122,7 @@ async function ffopponents(bot, api, interaction, clan) {
             }
 
             let result = data2.replace(/{{ Charts }}/g, charts);
-            result = result.replace(/{{ clan }}/g, (clansDict[clan] != undefined) ? clansDict[clan] : clan);
+            result = result.replace(/{{ clan }}/g, functions.escapeHtml((clansDict[clan] != undefined) ? clansDict[clan] : clan));
             result = result.replace(/{{ Opponents }}/g, opponentsText);
 
             let html = data.replace(/{{ body }}/g, result);
