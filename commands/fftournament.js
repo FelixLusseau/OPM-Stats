@@ -1298,6 +1298,50 @@ function generateMatchHTML(match) {
     return html;
 }
 
+async function help(bot, interaction) {
+    const Help = "- `players_ranking` : Display the players ranking of a tournament\n"
+        + "  - **tag** (required): Tournament tag\n"
+        + "  - **text_version** (optional): Show the text version too\n"
+        + "  - Allows you to exclude specific players from the ranking\n\n"
+        + "- `clans_ranking` : Display the clans ranking of a tournament\n"
+        + "  - **tag** (required): Tournament tag\n"
+        + "  - **text_version** (optional): Show the text version too\n"
+        + "  - Groups players by clan and shows total points per clan\n"
+        + "  - Allows you to exclude specific players from the ranking\n\n"
+        + "- `winner` : Display the tournament winner\n"
+        + "  - **tag** (required): Tournament tag\n"
+        + "  - Generates a visual image of the winner with their clan and score\n"
+        + "  - Allows you to exclude specific players before determining the winner\n\n"
+        + "- `pass_winner` : Randomly draw a pass winner\n"
+        + "  - **tag** (required): Tournament tag\n"
+        + "  - Randomly selects one player from the tournament\n"
+        + "  - You can redraw until you confirm the pass winner\n\n"
+        + "- `podium` : Display the top 3 players (podium)\n"
+        + "  - **tag** (required): Tournament tag\n"
+        + "  - Generates a visual podium with gold, silver, and bronze medals\n"
+        + "  - Allows you to exclude specific players from the podium\n\n"
+        + "- `bracket` : Generate an elimination bracket for top 8 players\n"
+        + "  - **tag** (required): Tournament tag\n"
+        + "  - **clan** (optional): Clan tag to filter friendly battles\n"
+        + "  - Creates a quarter-finals → semi-finals → final bracket\n"
+        + "  - Automatically updates results from friendly battle logs\n"
+        + "  - Requires at least 8 players in the tournament\n"
+        + "  - Allows you to exclude specific players from the bracket\n\n"
+        + "- `help` : Display this help menu\n"
+        + "\u200B";
+
+    const helpEmbed = functions.generateEmbed(bot);
+    try {
+        helpEmbed
+            .setTitle('__Tournament Commands Help__ :')
+            .setDescription(Help);
+    } catch (e) {
+        console.log(e);
+    }
+
+    await interaction.reply({ embeds: [helpEmbed] });
+}
+
 function createTournamentCommand(commandName) {
     return {
         results,
@@ -1305,9 +1349,13 @@ function createTournamentCommand(commandName) {
         passWinner,
         podium,
         bracket,
+        help,
         data: new SlashCommandBuilder()
             .setName(commandName)
             .setDescription('Tournaments commands !')
+            .addSubcommand(subcommand =>
+                subcommand.setName('help')
+                    .setDescription('Display help for tournament commands'))
             .addSubcommand(subcommand =>
                 subcommand.setName('players_ranking')
                     .setDescription('Get the players ranking of a tournament by its tag')
@@ -1362,6 +1410,9 @@ function createTournamentCommand(commandName) {
                             .setDescription('Show the text version of the command too'))),
         async execute(bot, api, interaction) {
             switch (interaction.options.getSubcommand()) {
+                case 'help':
+                    await help(bot, interaction);
+                    break;
                 case 'players_ranking':
                     await results(bot, api, interaction);
                     break;
