@@ -809,14 +809,16 @@ async function renderCommand(interaction, tmpFile, wait) {
     const browser = await puppeteerInit();
     const page = await browser.newPage();
 
-    // Navigate to a blank HTML page
-    await page.goto(`file:${path.join(__dirname, '../' + tmpFile)}`);
+    // Navigate to local HTML file
+    await page.goto(`file:${path.join(__dirname, '../' + tmpFile)}`, {
+        waitUntil: 'domcontentloaded'
+    });
 
     // Get background image dimensions to calculate proportional height
     const targetWidth = 2560;
 
-    // Wait a bit for the page to load
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Simple wait for page rendering
+    await new Promise(resolve => setTimeout(resolve, 300));
 
     const backgroundHeight = await page.evaluate((width) => {
         return new Promise((resolve) => {
@@ -849,6 +851,9 @@ async function renderCommand(interaction, tmpFile, wait) {
 
     // Wait for the chart to be rendered
     await new Promise(resolve => setTimeout(resolve, wait));
+
+    // Additional wait to ensure rendering is complete
+    await page.waitForFunction('document.readyState === "complete"');
 
     // Capture a screenshot of the rendered content
     await page.screenshot({ path: tmpFile + ".png", fullPage: true, quality: 90, type: 'jpeg' });
