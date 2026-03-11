@@ -944,66 +944,8 @@ function createBracketCollector(interaction, sessionId) {
                 }
 
                 // Initialize bracket with top 8 players
-                // const top8 = filteredResponse.membersList.slice(0, 8);
+                const top8 = filteredResponse.membersList.slice(0, 8);
                 // console.log('Top 8 players for bracket:', top8);
-                const top8 = [
-                    {
-                        tag: '#RC89QUVRV',
-                        name: 'Nayo',
-                        score: 7,
-                        rank: 1,
-                        clan: { tag: '#CRV0C8', name: 'Les vieux sages', badgeId: 16000001 }
-                    },
-                    {
-                        tag: '#89GQGLRQ',
-                        name: 'Sleazy✝️就係我嘅',
-                        score: 6,
-                        rank: 3,
-                        clan: { tag: '#YPUJGCPP', name: 'Rebellion’', badgeId: 16000162 }
-                    },
-                    {
-                        tag: '#2JRRQ82QL',
-                        name: 'Legendary',
-                        score: 5,
-                        rank: 4,
-                        clan: { tag: '#2UQ2VCCC', name: 'WarxUnion 2', badgeId: 16000002 }
-                    },
-                    {
-                        tag: '#YLVJV8220',
-                        name: 'Djé 160921',
-                        score: 5,
-                        rank: 5,
-                        clan: { tag: '#PQPQGGCR', name: "Biem's", badgeId: 16000078 }
-                    },
-                    {
-                        tag: '#GQQR9PQ2',
-                        name: 'lucase',
-                        score: 5,
-                        rank: 6,
-                        clan: { tag: '#LLLJJ9PC', name: 'Valet de Trêfle', badgeId: 16000171 }
-                    },
-                    {
-                        tag: '#QVU9P9PJ9',
-                        name: 'ʳᶦᵖTECHNOBLADE⚔',
-                        score: 5,
-                        rank: 7,
-                        clan: { tag: '#QUPY8GP9', name: 'TF Brownie', badgeId: 16000171 }
-                    },
-                    {
-                        tag: '#VUVCVCRV9',
-                        name: 'Omerkf78',
-                        score: 5,
-                        rank: 8,
-                        clan: { tag: '#GJV2JJQP', name: 'Camille580', badgeId: 16000078 }
-                    },
-                    {
-                        tag: '#G0PJRYVV',
-                        name: 'Mange-Noeud❗️',
-                        score: 5,
-                        rank: 9,
-                        clan: { tag: '#2UQ2VCCC', name: 'WarxUnion 2', badgeId: 16000002 }
-                    }
-                ]
                 session.bracketMatches = initializeBracket(top8, session.clanTag);
 
                 // Generate and display bracket
