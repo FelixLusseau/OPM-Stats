@@ -726,9 +726,16 @@ async function playerHistory(bot, channel, url) {
 
     // Wait for the chart to be rendered
     // await new Promise(resolve => setTimeout(resolve, 2200));
-    await Promise.all([
-        page.waitForSelector("table.ui.very.basic.compact.unstackable.player__cw2_history_table.table"),
-    ]);
+    try {
+        await Promise.all([
+            page.waitForSelector("table.ui.very.basic.very.compact.unstackable.player__cw2_history_table.table"),
+        ]);
+    }
+    catch (error) {
+        errorEmbed(bot, null, channel, "Unable to find the `player__cw2_history_table` on **RoyaleAPI** !\nResponse status: **" + response.status() + " " + response.statusText() + "**");
+        await browser.close();
+        return false;
+    }
 
     // Set screen size
     await page.setViewport({ width: 1080, height: 2048 });
