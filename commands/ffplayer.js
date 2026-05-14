@@ -284,9 +284,11 @@ async function playerHistory(bot, channel, url, limit = 60) {
         }, playerTag);
 
         // console.log('cw2_history call result:', JSON.stringify(apiResult));
+        await browser.close();
         return await sendCw2HistoryRows(bot, channel, apiResult, limit);
     } catch (err) {
         console.error('Error during token extraction or cw2_history request:', err);
+        await browser.close();
     }
 
     // Save the page source
@@ -344,7 +346,7 @@ async function playerHistory(bot, channel, url, limit = 60) {
     // const pngPath = 'playerHistory.png';
     // await page.screenshot({ path: pngPath });
 
-    await browser.close();
+    // await browser.close();
 }
 
 async function ffplayer(bot, api, interaction, channel, tag) {
