@@ -8,16 +8,7 @@ async function royaleAPIHistory(bot, message, placeholder, tag) {
         const statusCode = await functions.http_head("/player/" + tag);
         // console.log('Status Code:', statusCode);
         if (statusCode == 200) {
-            let url = "https://royaleapi.com/player/" + tag
             await ffplayer.ffplayer(bot, api, null, message.channel, '#' + tag);
-            if (await functions.playerHistory(bot, message.channel, url)) {
-                const playerHistoryList = new AttachmentBuilder('playerHistory.png');
-                const playerHistoryCanvas = new AttachmentBuilder('playerHistoryCanvas.png');
-                await message.channel.send({ content: url, files: [playerHistoryList, playerHistoryCanvas] });
-                // Remove files
-                fs.unlinkSync('./playerHistory.png')
-                fs.unlinkSync('./playerHistoryCanvas.png')
-            }
         }
         else
             functions.errorEmbed(bot, null, message.channel, "Invalid tag");

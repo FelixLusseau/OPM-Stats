@@ -1,16 +1,265 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const fs = require('fs');
 const functions = require('../utils/functions.js');
+
+function getLeagueIconMarkup(row, leagueIcons) {
+    const leagueKey = row?.clan_league || '';
+
+    const iconUrl = (leagueKey && leagueIcons ? leagueIcons[leagueKey] : null);
+
+    if (!iconUrl) {
+        return functions.escapeHtml(leagueKey || 'N/A');
+    }
+
+    const altText = functions.escapeHtml(leagueKey || 'league');
+    return `<img src="${functions.escapeHtml(iconUrl)}" alt="${altText}" style="height: 42px; vertical-align: middle;">`;
+}
+
+function buildCw2HistoryTableRow(row, leagueIcons) {
+    const seasonOffset = row?.season_id !== undefined && row?.section_index !== undefined
+        ? `${row.season_id}-${Number(row.section_index) + 1}`
+        : 'N/A';
+
+    const date = functions.escapeHtml(row?.log_date ?? 'N/A');
+    const league = getLeagueIconMarkup(row, leagueIcons);
+    const clanName = functions.escapeHtml(row?.clan_name ?? 'N/A');
+    const rank = functions.escapeHtml(row?.clan_rank ?? row?.clan_rank_int ?? 'N/A');
+    const decksUsed = functions.escapeHtml(row?.decks_used ?? 'N/A');
+    const fame = functions.escapeHtml(row?.fame ?? 'N/A');
+    const boatAttacks = functions.escapeHtml(row?.boat_attack ?? 'N/A');
+
+    return `<tr>
+        <td>${functions.escapeHtml(seasonOffset)}</td>
+        <td>${date}</td>
+        <td>${league}</td>
+        <td>${clanName}</td>
+        <td>${rank}</td>
+        <td>${decksUsed}</td>
+        <td>${fame}</td>
+        <td>${boatAttacks}</td>
+    </tr>`;
+}
+
+function chunkRows(rows, chunkSize) {
+    const chunks = [];
+    for (let index = 0; index < rows.length; index += chunkSize) {
+        chunks.push(rows.slice(index, index + chunkSize));
+    }
+    return chunks;
+}
+
+function buildCw2HistoryHtml(rows, playerName, playerTag, leagueIcons, pageNumber = 1, totalPages = 1) {
+    const tableRows = rows.map(row => buildCw2HistoryTableRow(row, leagueIcons)).join('\n');
+    const escapedPlayerName = functions.escapeHtml(playerName || 'this player');
+    const escapedPlayerTag = functions.escapeHtml(playerTag || '');
+
+    return `
+<div style="position: relative; width: 65%; text-align: center; margin: auto;">
+    <br><br><br>
+    <h1 style="margin-bottom: 1.3em;">CW2 history of <b>${escapedPlayerName}</b> ${escapedPlayerTag}</h1>
+    <h2 style="margin-bottom: 3em;">Page ${pageNumber}/${totalPages}</h2>
+    <table style="width: 100%; margin: auto; font-size: 2.4em;">
+        <tr>
+            <th>Season</th>
+            <th>Date</th>
+            <th>League</th>
+            <th>Clan name</th>
+            <th>Clan rank</th>
+            <th>Decks used</th>
+            <th>Fame</th>
+            <th>Boat attacks</th>
+        </tr>
+        ${tableRows}
+    </table>
+    <br><br><br><br>
+    <p style="text-align: left; display: flex; align-items: center; font-size: 2.25em; margin-bottom: 12em;">
+        <span style="padding: 10 px;">By <b>OPM I Féfé ⚡️</b></span>
+        <img src="https://avatars.githubusercontent.com/u/94113911?s=400&v=4" height="30 px">
+    </p>
+</div>`;
+}
+
+async function sendCw2HistoryRows(channel, apiResult, limit = 60) {
+    const payload = apiResult?.json ?? apiResult;
+
+    if (!payload) {
+        await channel.send('No CW2 data available.');
+        return false;
+    }
+
+    if (payload.error) {
+        await channel.send(`Unable to fetch CW2 history: ${payload.error}`);
+        return false;
+    }
+
+    const rows = Array.isArray(payload.rows) ? payload.rows : [];
+    const firstRowPlayerName = rows[0]?.player_name;
+    const playerName = decodeURIComponent(payload.player_name || firstRowPlayerName || '').replaceAll('+', ' ').trim();
+    const playerTag = payload.player_tag ? `#${payload.player_tag}` : '';
+    const maxRows = limit === -1 ? rows.length : (Number.isFinite(limit) && limit > 0 ? limit : 60);
+    const limitedRows = rows.slice(0, maxRows);
+
+    if (!limitedRows.length) {
+        await channel.send(`No CW2 results for **${playerName || 'this player'}** ${playerTag}.`);
+        return true;
+    }
+
+    const renderTarget = {
+        editReply: async ({ files }) => channel.send({ files })
+    };
+
+    const pageRows = chunkRows(limitedRows, 60);
+    for (let pageIndex = 0; pageIndex < pageRows.length; pageIndex++) {
+        const tmpFile = `tmpfiles/${(Math.random() + 1).toString(36).substring(7)}-${pageIndex + 1}.html`;
+        const htmlTemplate = fs.readFileSync('./html/layout.html', 'utf8');
+        const fragment = buildCw2HistoryHtml(pageRows[pageIndex], playerName, playerTag, payload.league_icons || {}, pageIndex + 1, pageRows.length);
+        let html = htmlTemplate.replace(/{{ body }}/g, fragment);
+        html = html.replace(/{{ Background }}/g, 'bg/Background_normal_cropped');
+
+        fs.writeFileSync(`./${tmpFile}`, html, 'utf8');
+        await functions.renderCommand(renderTarget, tmpFile, 0);
+    }
+
+    return true;
+}
+
+async function playerHistory(bot, channel, url, limit = 60) {
+    // console.log('Launching Puppeteer...');
+    // Launch the browser and open a new blank page
+    const browser = await functions.puppeteerInit();
+    const page = await browser.newPage();
+
+    // Block requests to specific domains
+    const blockedDomains = ['a.pub.network', 'c.pub.network', 'd.pub.network'];
+
+    await page.setRequestInterception(true);
+    page.on('request', (request) => {
+        const url = new URL(request.url());
+        if (blockedDomains.includes(url.hostname)) {
+            request.abort();
+        } else {
+            request.continue();
+        }
+    });
+
+    // Navigate the page to a URL
+    const response = await page.goto(url);
+    // console.log(`Response status: ${response.status()} ${response.statusText()}`);
+    // console.log('Response details:', {
+    //     status: response.status(),
+    //     statusText: response.statusText(),
+    //     ok: response.ok(),
+    //     url: response.url(),
+    //     headers: response.headers(),
+    //     fromCache: response.fromCache(),
+    //     fromServiceWorker: response.fromServiceWorker()
+    // });
+
+    // --- Extract the JWT token from the page scripts and call the cw2_history API ---
+    try {
+        const playerTag = (new URL(url)).pathname.split('/').filter(Boolean).pop();
+        const apiResult = await page.evaluate(async (playerTag) => {
+            const jwtRegex = /eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g;
+            let token = null;
+            for (const s of Array.from(document.scripts)) {
+                if (s.innerText) {
+                    const m = s.innerText.match(jwtRegex);
+                    if (m && m.length) { token = m[0]; break; }
+                }
+            }
+            if (!token) {
+                const bodyText = (document.documentElement && document.documentElement.innerText) || '';
+                const m = bodyText.match(jwtRegex);
+                if (m && m.length) token = m[0];
+            }
+            if (!token) return { error: 'token_not_found' };
+
+            // Same-origin request to avoid CORS issues and reuse cookies/session
+            const res = await fetch(`/player/cw2_history/${playerTag}`, {
+                headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
+            });
+            const json = await res.json();
+            return { json };
+        }, playerTag);
+
+        // console.log('cw2_history call result:', JSON.stringify(apiResult));
+        await sendCw2HistoryRows(channel, apiResult, limit);
+    } catch (err) {
+        console.error('Error during token extraction or cw2_history request:', err);
+    }
+
+    // Save the page source
+    // let source = await page.content();
+    // fs.writeFileSync('source.html', source);
+
+    // // Show the player history
+    // try {
+    //     await Promise.all([
+    //         page.waitForSelector("button.ui.primary.button.cw2_history_button"),
+    //         page.click("button.ui.primary.button.cw2_history_button"),
+    //     ]);
+    // }
+    // catch (error) {
+    //     functions.errorEmbed(bot, null, channel, "Unable to find the `cw2_history_button` on **RoyaleAPI** !\nResponse status: **" + response.status() + " " + response.statusText() + "**");
+    //     await browser.close();
+    //     return false;
+    // }
+
+    // // Wait for the chart to be rendered
+    // // await new Promise(resolve => setTimeout(resolve, 2200));
+    // try {
+    //     await Promise.all([
+    //         page.waitForSelector("table.ui.very.basic.very.compact.unstackable.player__cw2_history_table.table"),
+    //     ]);
+    // }
+    // catch (error) {
+    //     functions.errorEmbed(bot, null, channel, "Unable to find the `player__cw2_history_table` on **RoyaleAPI** !\nResponse status: **" + response.status() + " " + response.statusText() + "**");
+    //     await browser.close();
+    //     return false;
+    // }
+
+    // // Set screen size
+    // await page.setViewport({ width: 1080, height: 2048 });
+
+    // // Get the base64-encoded image data
+    // const imageData = await page.$eval("canvas#cw2-history-chart", el => el.toDataURL().substring(22));
+
+    // // Convert the base64-encoded data to an ArrayBuffer
+    // const buffer = functions.base64ToArrayBuffer(imageData);
+
+    // // Create a new Uint8Array from the ArrayBuffer
+    // const uint8Array = new Uint8Array(buffer);
+
+    // // Create a new file and write the data to it
+    // fs.writeFileSync('playerHistoryCanvas.png', uint8Array);
+
+    // // Scroll to the canvas element
+    // await page.evaluate(() => {
+    //     const canvas = document.querySelector("canvas#cw2-history-chart");
+    //     canvas.scrollIntoView();
+    // });
+
+    // // Capture a screenshot of the rendered content
+    // const pngPath = 'playerHistory.png';
+    // await page.screenshot({ path: pngPath });
+
+    await browser.close();
+}
 
 async function ffplayer(bot, api, interaction, channel, tag) {
     let details = false;
+    let limit = 60;
     if (interaction != null) {
         await interaction.deferReply({ ephemeral: false });
         tag = interaction.options.getString('tag').toUpperCase();
         details = interaction.options.getBoolean('details');
+        limit = interaction.options.getInteger('limit') ?? 60;
+        channel = interaction.channel;
     }
+    const playerHistoryUrl = `https://royaleapi.com/player/${tag.substring(1)}`;
 
     const regex = /\#[a-zA-Z0-9]{6,9}\b/g
-    if (tag.search(regex) < 0) { // Prevent the bot from crashing (not happening) if the tag is invalid
+    if (tag.search(regex) < 0) { // Prevent the bot from crashing if the tag is invalid
         functions.errorEmbed(bot, interaction, channel, "Invalid tag");
         return
     }
@@ -75,6 +324,8 @@ async function ffplayer(bot, api, interaction, channel, tag) {
         await interaction.editReply({ embeds: [playerEmbed] });
     else
         await channel.send({ embeds: [playerEmbed] });
+
+    await playerHistory(bot, channel, playerHistoryUrl, limit)
 }
 
 module.exports = {
@@ -88,7 +339,11 @@ module.exports = {
                 .setRequired(true))
         .addBooleanOption(option =>
             option.setName('details')
-                .setDescription('Display more details')),
+                .setDescription('Display more details'))
+        .addIntegerOption(option =>
+            option.setName('limit')
+                .setDescription('Maximum number of CW2 rows to display, -1 for no limit (default: 60)')
+                .setMinValue(-1)),
 
     async execute(bot, api, interaction) {
         ffplayer(bot, api, interaction, null, null);

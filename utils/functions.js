@@ -675,97 +675,6 @@ function base64ToArrayBuffer(base64) {
     return bytes.buffer;
 }
 
-async function playerHistory(bot, channel, url) {
-    // console.log('Launching Puppeteer...');
-    // Launch the browser and open a new blank page
-    const browser = await puppeteerInit();
-    const page = await browser.newPage();
-
-    // Block requests to specific domains
-    const blockedDomains = ['a.pub.network', 'c.pub.network', 'd.pub.network'];
-
-    await page.setRequestInterception(true);
-    page.on('request', (request) => {
-        const url = new URL(request.url());
-        if (blockedDomains.includes(url.hostname)) {
-            request.abort();
-        } else {
-            request.continue();
-        }
-    });
-
-    // Navigate the page to a URL
-    const response = await page.goto(url);
-    // console.log(`Statut de réponse: ${response.status()} ${response.statusText()}`);
-    // console.log('Détails de la réponse:', {
-    //     status: response.status(),
-    //     statusText: response.statusText(),
-    //     ok: response.ok(),
-    //     url: response.url(),
-    //     headers: response.headers(),
-    //     fromCache: response.fromCache(),
-    //     fromServiceWorker: response.fromServiceWorker()
-    // });
-
-    // Save the page source
-    // let source = await page.content();
-    // fs.writeFileSync('source.html', source);
-
-    // Show the player history
-    try {
-        await Promise.all([
-            page.waitForSelector("button.ui.primary.button.cw2_history_button"),
-            page.click("button.ui.primary.button.cw2_history_button"),
-        ]);
-    }
-    catch (error) {
-        errorEmbed(bot, null, channel, "Unable to find the `cw2_history_button` on **RoyaleAPI** !\nResponse status: **" + response.status() + " " + response.statusText() + "**");
-        await browser.close();
-        return false;
-    }
-
-    // Wait for the chart to be rendered
-    // await new Promise(resolve => setTimeout(resolve, 2200));
-    try {
-        await Promise.all([
-            page.waitForSelector("table.ui.very.basic.very.compact.unstackable.player__cw2_history_table.table"),
-        ]);
-    }
-    catch (error) {
-        errorEmbed(bot, null, channel, "Unable to find the `player__cw2_history_table` on **RoyaleAPI** !\nResponse status: **" + response.status() + " " + response.statusText() + "**");
-        await browser.close();
-        return false;
-    }
-
-    // Set screen size
-    await page.setViewport({ width: 1080, height: 2048 });
-
-    // Get the base64-encoded image data
-    const imageData = await page.$eval("canvas#cw2-history-chart", el => el.toDataURL().substring(22));
-
-    // Convert the base64-encoded data to an ArrayBuffer
-    const buffer = base64ToArrayBuffer(imageData);
-
-    // Create a new Uint8Array from the ArrayBuffer
-    const uint8Array = new Uint8Array(buffer);
-
-    // Create a new file and write the data to it
-    fs.writeFileSync('playerHistoryCanvas.png', uint8Array);
-
-    // Scroll to the canvas element
-    await page.evaluate(() => {
-        const canvas = document.querySelector("canvas#cw2-history-chart");
-        canvas.scrollIntoView();
-    });
-
-    // Capture a screenshot of the rendered content
-    const pngPath = 'playerHistory.png';
-    await page.screenshot({ path: pngPath });
-
-    await browser.close();
-    return true;
-}
-
 function extractPlayerInfo(str) {
     const regex = /\[([^\]]+)\]\(https:\/\/dspy\.pro\/en\/p\/([^\)]+)\)/;
     const match = str.match(regex);
@@ -976,9 +885,9 @@ module.exports = {
     ratio,
     ratioEmote,
     fetchHist,
+    puppeteerInit,
     excel,
     http_head,
-    playerHistory,
     extractDeckShopTag,
     renderCommand,
     barChart,
