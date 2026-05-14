@@ -184,10 +184,6 @@ async function sendCw2HistoryRows(bot, channel, apiResult, limit = 60) {
 
     const chartBuffer = Buffer.from(await chartResponse.arrayBuffer());
 
-    await channel.send({
-        files: [{ attachment: chartBuffer, name: 'cw2-fame-history.png' }],
-    });
-
     const pageRows = chunkRows(limitedRows, 60);
     const tableFiles = [];
 
@@ -222,15 +218,10 @@ async function sendCw2HistoryRows(bot, channel, apiResult, limit = 60) {
         await functions.renderCommand(renderTarget, tmpFile, 0);
     }
 
-    // Send the tables as attachments in batches (if there are multiple pages)
-    if (tableFiles.length > 0) {
-        await channel.send({
-            content: '**CW2 History Table(s)**',
-            files: tableFiles
-        });
-    }
-
-    return true;
+    return {
+        chartAttachment: { attachment: chartBuffer, name: 'cw2-fame-history.png' },
+        tableFiles,
+    };
 }
 
 async function playerHistory(bot, channel, url, limit = 60) {
@@ -293,7 +284,7 @@ async function playerHistory(bot, channel, url, limit = 60) {
         }, playerTag);
 
         // console.log('cw2_history call result:', JSON.stringify(apiResult));
-        await sendCw2HistoryRows(bot, channel, apiResult, limit);
+        return await sendCw2HistoryRows(bot, channel, apiResult, limit);
     } catch (err) {
         console.error('Error during token extraction or cw2_history request:', err);
     }
@@ -429,13 +420,30 @@ async function ffplayer(bot, api, interaction, channel, tag) {
         .setTitle(player.name)
         .setDescription(player_data)
 
-    // If the interaction is not null, edit the reply deferred before
-    if (interaction != null)
-        await interaction.editReply({ embeds: [playerEmbed] });
-    else
-        await channel.send({ embeds: [playerEmbed] });
+    const cw2Render = await playerHistory(bot, channel, playerHistoryUrl, limit);
 
-    await playerHistory(bot, channel, playerHistoryUrl, limit)
+    if (cw2Render?.chartAttachment) {
+        playerEmbed.setImage('attachment://cw2-fame-history.png');
+    }
+
+    if (interaction != null) {
+        await interaction.editReply({
+            embeds: [playerEmbed],
+            files: cw2Render?.chartAttachment ? [cw2Render.chartAttachment] : [],
+        });
+    } else {
+        await channel.send({
+            embeds: [playerEmbed],
+            files: cw2Render?.chartAttachment ? [cw2Render.chartAttachment] : [],
+        });
+    }
+
+    if (cw2Render?.tableFiles?.length > 0) {
+        await channel.send({
+            content: '**CW2 History Table(s)**',
+            files: cw2Render.tableFiles,
+        });
+    }
 }
 
 module.exports = {
@@ -452,7 +460,7 @@ module.exports = {
                 .setDescription('Display more details'))
         .addIntegerOption(option =>
             option.setName('limit')
-                .setDescription('Maximum number of CW2 rows to display, -1 for no limit (default: 60)')
+                .setDescription('Maximum number of CW2 rows to display, -1 for all (default: 60)')
                 .setMinValue(-1)),
 
     async execute(bot, api, interaction) {
