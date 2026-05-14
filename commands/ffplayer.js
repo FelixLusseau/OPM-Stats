@@ -97,6 +97,7 @@ function buildCw2FameHistogramConfig(rows, playerName = 'this player', playerTag
                 yAxes: [{
                     ticks: {
                         beginAtZero: true,
+                        max: 3600,
                     },
                 }],
             },
@@ -188,6 +189,8 @@ async function sendCw2HistoryRows(bot, channel, apiResult, limit = 60) {
     });
 
     const pageRows = chunkRows(limitedRows, 60);
+    const tableFiles = [];
+
     for (let pageIndex = 0; pageIndex < pageRows.length; pageIndex++) {
         const tmpFile = `tmpfiles/${(Math.random() + 1).toString(36).substring(7)}-${pageIndex + 1}.html`;
         const htmlTemplate = fs.readFileSync('./html/layout.html', 'utf8');
@@ -197,10 +200,34 @@ async function sendCw2HistoryRows(bot, channel, apiResult, limit = 60) {
 
         fs.writeFileSync(`./${tmpFile}`, html, 'utf8');
         const renderTarget = {
-            editReply: async ({ files }) => channel.send({ files })
+            editReply: async ({ files }) => {
+                if (!files) {
+                    return;
+                }
+
+                for (const file of files) {
+                    const filePath = file?.attachment;
+                    if (typeof filePath !== 'string') {
+                        continue;
+                    }
+
+                    tableFiles.push({
+                        attachment: fs.readFileSync(filePath),
+                        name: file.name || `cw2-page-${pageIndex + 1}.png`,
+                    });
+                }
+            }
         };
 
         await functions.renderCommand(renderTarget, tmpFile, 0);
+    }
+
+    // Send the tables as attachments in batches (if there are multiple pages)
+    if (tableFiles.length > 0) {
+        await channel.send({
+            content: '**CW2 History Table(s)**',
+            files: tableFiles
+        });
     }
 
     return true;
