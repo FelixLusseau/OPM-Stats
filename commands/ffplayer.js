@@ -1,6 +1,15 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 const fs = require('fs');
 const functions = require('../utils/functions.js');
+
+// Minimum season limit: no data should be returned before this season
+const MIN_SEASON = { season: 73, section: 0 };
+
+function isSeasonAtOrAfterMinimum(seasonId, sectionIndex) {
+    if (seasonId < MIN_SEASON.season) return false;
+    if (seasonId === MIN_SEASON.season && sectionIndex < MIN_SEASON.section) return false;
+    return true;
+}
 
 function getLeagueIconMarkup(row, leagueIcons) {
     const leagueKey = row?.clan_league || '';
@@ -48,6 +57,53 @@ function chunkRows(rows, chunkSize) {
     return chunks;
 }
 
+function buildCw2FameHistogramConfig(rows, playerName = 'this player', playerTag = '') {
+    const reversedRows = [...rows].reverse();
+    const labels = reversedRows.map(row => `${row?.season_id ?? 'N/A'}-${Number(row?.section_index ?? 0) + 1}`);
+    const fameValues = reversedRows.map(row => Number(row?.fame ?? 0));
+    return {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Fame',
+                data: fameValues,
+                backgroundColor: 'rgba(222, 34, 34, 0.8)',
+                borderColor: 'rgba(222, 34, 34, 1)',
+                borderWidth: 1,
+                barPercentage: 0.9,
+                categoryPercentage: 1.0,
+            }],
+        },
+        options: {
+            legend: { display: false },
+            title: {
+                display: true,
+                text: `CW2 history of ${playerName} ${playerTag}`,
+                fontSize: 20,
+            },
+            scales: {
+                xAxes: [{
+                    ticks: {
+                        autoSkip: true,
+                        maxRotation: 90,
+                        minRotation: 90,
+                        maxTicksLimit: 40,
+                    },
+                    gridLines: {
+                        display: false,
+                    },
+                }],
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true,
+                    },
+                }],
+            },
+        },
+    };
+}
+
 function buildCw2HistoryHtml(rows, playerName, playerTag, leagueIcons, pageNumber = 1, totalPages = 1) {
     const tableRows = rows.map(row => buildCw2HistoryTableRow(row, leagueIcons)).join('\n');
     const escapedPlayerName = functions.escapeHtml(playerName || 'this player');
@@ -79,7 +135,7 @@ function buildCw2HistoryHtml(rows, playerName, playerTag, leagueIcons, pageNumbe
 </div>`;
 }
 
-async function sendCw2HistoryRows(channel, apiResult, limit = 60) {
+async function sendCw2HistoryRows(bot, channel, apiResult, limit = 60) {
     const payload = apiResult?.json ?? apiResult;
 
     if (!payload) {
@@ -96,17 +152,40 @@ async function sendCw2HistoryRows(channel, apiResult, limit = 60) {
     const firstRowPlayerName = rows[0]?.player_name;
     const playerName = decodeURIComponent(payload.player_name || firstRowPlayerName || '').replaceAll('+', ' ').trim();
     const playerTag = payload.player_tag ? `#${payload.player_tag}` : '';
-    const maxRows = limit === -1 ? rows.length : (Number.isFinite(limit) && limit > 0 ? limit : 60);
-    const limitedRows = rows.slice(0, maxRows);
+
+    // Filter rows to only include seasons at or after MIN_SEASON
+    const filteredRows = rows.filter(row => isSeasonAtOrAfterMinimum(row?.season_id, row?.section_index));
+
+    const maxRows = limit === -1 ? filteredRows.length : (Number.isFinite(limit) && limit > 0 ? limit : 60);
+    const limitedRows = filteredRows.slice(0, maxRows);
 
     if (!limitedRows.length) {
         await channel.send(`No CW2 results for **${playerName || 'this player'}** ${playerTag}.`);
         return true;
     }
 
-    const renderTarget = {
-        editReply: async ({ files }) => channel.send({ files })
-    };
+    const chartConfig = buildCw2FameHistogramConfig(filteredRows, playerName, playerTag);
+    const chartResponse = await fetch('https://quickchart.io/chart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            width: 2200,
+            height: 700,
+            format: 'png',
+            backgroundColor: '#cdd0d5',
+            chart: chartConfig,
+        }),
+    });
+
+    if (!chartResponse.ok) {
+        throw new Error(`Unable to generate CW2 chart: ${chartResponse.status} ${chartResponse.statusText}`);
+    }
+
+    const chartBuffer = Buffer.from(await chartResponse.arrayBuffer());
+
+    await channel.send({
+        files: [{ attachment: chartBuffer, name: 'cw2-fame-history.png' }],
+    });
 
     const pageRows = chunkRows(limitedRows, 60);
     for (let pageIndex = 0; pageIndex < pageRows.length; pageIndex++) {
@@ -117,6 +196,10 @@ async function sendCw2HistoryRows(channel, apiResult, limit = 60) {
         html = html.replace(/{{ Background }}/g, 'bg/Background_normal_cropped');
 
         fs.writeFileSync(`./${tmpFile}`, html, 'utf8');
+        const renderTarget = {
+            editReply: async ({ files }) => channel.send({ files })
+        };
+
         await functions.renderCommand(renderTarget, tmpFile, 0);
     }
 
@@ -183,7 +266,7 @@ async function playerHistory(bot, channel, url, limit = 60) {
         }, playerTag);
 
         // console.log('cw2_history call result:', JSON.stringify(apiResult));
-        await sendCw2HistoryRows(channel, apiResult, limit);
+        await sendCw2HistoryRows(bot, channel, apiResult, limit);
     } catch (err) {
         console.error('Error during token extraction or cw2_history request:', err);
     }
