@@ -566,7 +566,7 @@ function clanResults(response) {
 }
 
 async function results(bot, api, interaction) {
-    await interaction.deferReply({ ephemeral: false });
+    await interaction.deferReply();
 
     const tag = interaction.options.getString('tag');
     const textVersion = interaction.options.getBoolean('text_version');
@@ -615,7 +615,7 @@ async function results(bot, api, interaction) {
 }
 
 async function winner(bot, api, interaction, clan) {
-    await interaction.deferReply({ ephemeral: false });
+    await interaction.deferReply();
 
     const tag = interaction.options.getString('tag');
 
@@ -663,7 +663,7 @@ async function winner(bot, api, interaction, clan) {
 }
 
 async function passWinner(bot, api, interaction, clan) {
-    await interaction.deferReply({ ephemeral: false });
+    await interaction.deferReply();
 
     const tag = interaction.options.getString('tag');
 
@@ -801,7 +801,7 @@ function createPassWinnerCollector(interaction, sessionId) {
 }
 
 async function podium(bot, api, interaction) {
-    await interaction.deferReply({ ephemeral: false });
+    await interaction.deferReply();
 
     const tag = interaction.options.getString('tag');
 
@@ -854,7 +854,7 @@ async function podium(bot, api, interaction) {
 // ==================== BRACKET FUNCTIONS ====================
 
 async function bracket(bot, api, interaction) {
-    await interaction.deferReply({ ephemeral: false });
+    await interaction.deferReply();
 
     const tag = interaction.options.getString('tag');
     const clanTag = interaction.options.getString('clan');

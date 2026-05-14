@@ -16,7 +16,7 @@ function isValidTimeFormat(input) {
 
 // Function to define a report and reset hour for a registered clan
 async function setHour(bot, api, interaction) {
-    await interaction.deferReply({ ephemeral: false });
+    await interaction.deferReply();
     const clan = interaction.options.getString('clan');
     if (functions.isRegisteredClan(bot, interaction, interaction.channel, clan) == false) // Check if the clan is registered
         return
@@ -104,7 +104,7 @@ async function setHour(bot, api, interaction) {
 
 // Function to edit the report channel and / or hour
 async function updateHour(bot, api, interaction) {
-    await interaction.deferReply({ ephemeral: false });
+    await interaction.deferReply();
     const clan = interaction.options.getString('clan');
     if (functions.isRegisteredClan(bot, interaction, interaction.channel, clan) == false) // Check if the clan is registered
         return
@@ -203,7 +203,7 @@ async function updateHour(bot, api, interaction) {
 
 // Function display the report and reset hours
 async function getHours(bot, api, interaction) {
-    await interaction.deferReply({ ephemeral: false });
+    await interaction.deferReply();
     let hours = "";
 
     try {
@@ -279,7 +279,7 @@ async function rmHour(bot, api, interaction, clanParam = null, guildIDParam = nu
         guildId = guildIDParam;
     } else {
         // Called from Discord interaction
-        await interaction.deferReply({ ephemeral: false });
+        await interaction.deferReply();
         clan = interaction.options.getString('clan');
         guildId = interaction.guildId;
 

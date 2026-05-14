@@ -6,7 +6,7 @@ async function ffattacks(bot, api, interaction, pingBool, channel, clan, guildID
     let text = null
     // Check if the command was run by an interaction or a scheduled message
     if (interaction != null) {
-        await interaction.deferReply({ ephemeral: false });
+        await interaction.deferReply();
         pingBool = interaction.options.getBoolean('ping');
         if (interaction.options.getString('clan')) {
             clan = interaction.options.getString('clan');

@@ -3,7 +3,7 @@ const fs = require('fs');
 const functions = require('../utils/functions.js');
 
 async function ffmembers(bot, api, interaction, clan) {
-    await interaction.deferReply({ ephemeral: false });
+    await interaction.deferReply();
     if (interaction.options.getString('clan')) {
         clan = interaction.options.getString('clan');
         if (functions.isRegisteredClan(bot, interaction, interaction.channel, clan) == false) // Check if the clan is registered

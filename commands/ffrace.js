@@ -4,7 +4,7 @@ const functions = require('../utils/functions.js');
 async function ffrace(bot, api, interaction, channel, clan, report) {
     // Check if the command was run by an interaction or a scheduled message
     if (interaction != null) {
-        await interaction.deferReply({ ephemeral: false });
+        await interaction.deferReply();
         if (interaction.options.getString('clan')) {
             clan = interaction.options.getString('clan');
             if (functions.isRegisteredClan(bot, interaction, interaction.channel, clan) == false) // Check if the clan is registered

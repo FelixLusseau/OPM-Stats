@@ -5,7 +5,7 @@ const fs = require('fs');
 async function ffavg(bot, api, interaction, clan, limit, include_all_players) {
     // Check if the command was run by an interaction or called by another function
     if (interaction != null) {
-        await interaction.deferReply({ ephemeral: false });
+        await interaction.deferReply();
         clan = interaction.options.getString('clan');
         if (functions.isRegisteredClan(bot, interaction, interaction.channel, clan) == false) // Check if the clan is registered
             return
@@ -161,7 +161,7 @@ async function ffavg(bot, api, interaction, clan, limit, include_all_players) {
 async function fffamilyavg(bot, api, interaction, limit, include_all_players) {
     // Check if the command was run by an interaction or called by another function
     if (interaction != null) {
-        await interaction.deferReply({ ephemeral: false });
+        await interaction.deferReply();
         limit = interaction.options.getInteger('limit');
         include_all_players = interaction.options.getBoolean('include_all_players');
     }

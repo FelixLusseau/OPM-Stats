@@ -29,7 +29,7 @@ module.exports = {
                     { name: 'TPM', value: 'TPM' },
                 )),
     async execute(bot, api, interaction) {
-        await interaction.deferReply({ ephemeral: false });
+        await interaction.deferReply();
         const rotatesEmbed = new EmbedBuilder();
         const player = interaction.options.getString('player');
         const from = interaction.options.getString('from');

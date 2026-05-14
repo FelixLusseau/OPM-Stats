@@ -1,6 +1,6 @@
 {
   "name": "OPM-Stats",
-  "version": "4.8.0",
+  "version": "4.9.0",
   "description": "",
   "main": "OPM-Stats.js",
   "scripts": {
@@ -13,14 +13,14 @@
   "dependencies": {
     "@varandas/clash-royale-api": "^2.3.0",
     "chart": "^0.1.2",
-    "discord.js": "^14.26.2",
-    "dotenv": "^17.4.0",
+    "discord.js": "^14.26.4",
+    "dotenv": "^17.4.2",
     "exceljs": "^4.4.0",
     "fs": "^0.0.1-security",
     "luxon": "^3.7.2",
     "node-cron": "^4.2.1",
     "node-fetch": "^3.3.2",
-    "puppeteer": "^24.40.0",
+    "puppeteer": "^24.43.1",
     "random-useragent": "^0.5.0",
     "sqlite3": "^6.0.1"
   },

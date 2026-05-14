@@ -5,7 +5,7 @@ const ffhour = require('./ffhour.js');
 
 // Function to register a clan for the Discord server
 async function registerClan(bot, api, interaction) {
-    await interaction.deferReply({ ephemeral: false });
+    await interaction.deferReply();
     const abbr = interaction.options.getString('abbr');
     const tag = interaction.options.getString('tag');
     let clan = null
@@ -78,7 +78,7 @@ async function registerClan(bot, api, interaction) {
 
 // Function to unregister a clan for the Discord server
 async function unregisterClan(bot, api, interaction) {
-    await interaction.deferReply({ ephemeral: false });
+    await interaction.deferReply();
     const tag = interaction.options.getString('abbr');
     if (functions.isRegisteredClan(bot, interaction, interaction.channel, tag) == false) // Check if the clan is registered
         return

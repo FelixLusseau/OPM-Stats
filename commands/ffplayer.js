@@ -351,7 +351,7 @@ async function ffplayer(bot, api, interaction, channel, tag) {
     let details = false;
     let limit = 60;
     if (interaction != null) {
-        await interaction.deferReply({ ephemeral: false });
+        await interaction.deferReply();
         tag = interaction.options.getString('tag').toUpperCase();
         details = interaction.options.getBoolean('details');
         limit = interaction.options.getInteger('limit') ?? 60;
@@ -426,6 +426,7 @@ async function ffplayer(bot, api, interaction, channel, tag) {
         playerEmbed.setImage('attachment://cw2-fame-history.png');
     }
 
+    // Send embed with chart
     if (interaction != null) {
         await interaction.editReply({
             embeds: [playerEmbed],
@@ -438,6 +439,7 @@ async function ffplayer(bot, api, interaction, channel, tag) {
         });
     }
 
+    // Send tables in a separate message below the embed
     if (cw2Render?.tableFiles?.length > 0) {
         await channel.send({
             content: '**CW2 History Table(s)**',

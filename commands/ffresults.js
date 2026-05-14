@@ -16,7 +16,7 @@ async function ffresults(bot, api, interaction, clan) {
     let members = null
     // Check if the command was run by an interaction or a scheduled message
     if (interaction != null) {
-        await interaction.deferReply({ ephemeral: false });
+        await interaction.deferReply();
         clan = interaction.options.getString('clan');
         if (functions.isRegisteredClan(bot, interaction, interaction.channel, clan) == false) // Check if the clan is registered
             return

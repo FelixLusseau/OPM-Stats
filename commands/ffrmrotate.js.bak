@@ -10,7 +10,7 @@ module.exports = {
                 .setDescription('Rotate ID to remove')
                 .setRequired(true)),
     async execute(bot, api, interaction) {
-        await interaction.deferReply({ ephemeral: false });
+        await interaction.deferReply();
         const rotatesEmbed = new EmbedBuilder();
         const id = interaction.options.getInteger('id');
         let result = "";
