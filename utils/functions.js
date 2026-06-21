@@ -71,7 +71,7 @@ async function loadRegisteredClans() {
 
 // Function to check if the tag is valid
 async function isValidTag(tag) {
-    const regex = /\#[a-zA-Z0-9]{6,10}\b/g
+    const regex = /\#[a-zA-Z0-9]{8,9}\b/g
     if (tag.search(regex) >= 0) {
         tag = (tag[0] == "#") ? tag : "#" + tag;
         try {
