@@ -361,7 +361,7 @@ async function ffplayer(bot, api, interaction, channel, tag) {
     }
     const playerHistoryUrl = `https://royaleapi.com/player/${tag.substring(1)}`;
 
-    const regex = /\#[a-zA-Z0-9]{6,9}\b/g
+    const regex = /\#[a-zA-Z0-9]{6,10}\b/g
     if (tag.search(regex) < 0) { // Prevent the bot from crashing if the tag is invalid
         functions.errorEmbed(bot, interaction, channel, "Invalid tag");
         return
