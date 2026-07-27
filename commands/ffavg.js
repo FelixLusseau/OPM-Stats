@@ -25,6 +25,17 @@ async function ffavg(bot, api, interaction, clan, limit, include_all_players) {
     clanMembers.forEach(clanMember => {
         clanMembersMap[clanMember.tag] = clanMember;
     });
+    // Get the players' exp level individually because the API doesn't provide it anymore in the clan members list
+    let clanPlayers = {};
+    for (const clanMember of clanMembers) {
+        try {
+            const player = await api.getPlayerByTag(clanMember.tag);
+            clanPlayers[clanMember.name] = player?.expLevel;
+        } catch (e) {
+            console.error(`Error fetching player data for ${clanMember.name} (${clanMember.tag}):`, e);
+        }
+    }
+    // console.log(clanPlayers);
 
     // Get the clans' score history
     let avg = await functions.fetchHist(clan.substring(1));
@@ -49,14 +60,14 @@ async function ffavg(bot, api, interaction, clan, limit, include_all_players) {
                     avgArray[participant.name]['decksUsed'] = [participant.decksUsed, null, null, null, null, null, null, null, null, null];
 
                     try { // May be empty and fail if the player is not in the clan anymore
-                        avgArray[participant.name]['expLevel'] = clanMembersMap[participant.tag].expLevel;
+                        avgArray[participant.name]['expLevel'] = clanPlayers[participant.name];
                         avgArray[participant.name]['role'] = clanMembersMap[participant.tag].role;
                         if (clanMembersMap[participant.tag].role == 'coLeader' || clanMembersMap[participant.tag].role == 'leader')
                             avgArray[participant.name]['staff'] = true;
                         else
                             avgArray[participant.name]['staff'] = false;
                     } catch (error) {
-                        avgArray[participant.name]['expLevel'] = 0;
+                        avgArray[participant.name]['expLevel'] = -1;
                         avgArray[participant.name]['role'] = '';
                         avgArray[participant.name]['staff'] = false;
                     }
@@ -90,14 +101,14 @@ async function ffavg(bot, api, interaction, clan, limit, include_all_players) {
                         avgArray[participant.name]['decksUsed'][p] = participant.decksUsed;
 
                         try { // May be empty and fail if the player is not in the clan anymore
-                            avgArray[participant.name]['expLevel'] = clanMembersMap[participant.tag].expLevel;
+                            avgArray[participant.name]['expLevel'] = clanPlayers[participant.name];
                             avgArray[participant.name]['role'] = clanMembersMap[participant.tag].role;
                             if (clanMembersMap[participant.tag].role == 'coLeader' || clanMembersMap[participant.tag].role == 'leader')
                                 avgArray[participant.name]['staff'] = true;
                             else
                                 avgArray[participant.name]['staff'] = false;
                         } catch (error) {
-                            avgArray[participant.name]['expLevel'] = 0;
+                            avgArray[participant.name]['expLevel'] = -1;
                             avgArray[participant.name]['role'] = '';
                             avgArray[participant.name]['staff'] = false;
                         }
@@ -112,14 +123,14 @@ async function ffavg(bot, api, interaction, clan, limit, include_all_players) {
                         avgArray[participant.name]['decksUsed'][p] = participant.decksUsed;
 
                         try { // May be empty and fail if the player is not in the clan anymore
-                            avgArray[participant.name]['expLevel'] = clanMembersMap[participant.tag].expLevel;
+                            avgArray[participant.name]['expLevel'] = clanPlayers[participant.name];
                             avgArray[participant.name]['role'] = clanMembersMap[participant.tag].role;
                             if (clanMembersMap[participant.tag].role == 'coLeader' || clanMembersMap[participant.tag].role == 'leader')
                                 avgArray[participant.name]['staff'] = true;
                             else
                                 avgArray[participant.name]['staff'] = false;
                         } catch (error) {
-                            avgArray[participant.name]['expLevel'] = 0;
+                            avgArray[participant.name]['expLevel'] = -1;
                             avgArray[participant.name]['role'] = '';
                             avgArray[participant.name]['staff'] = false;
                         }
@@ -155,6 +166,7 @@ async function ffavg(bot, api, interaction, clan, limit, include_all_players) {
             console.error(err)
         }
     }
+    // console.log("Sorted : ", sortedAvgObject);
     return sortedAvgObject;
 }
 
@@ -205,8 +217,8 @@ async function fffamilyavg(bot, api, interaction, limit, include_all_players) {
 
     // Sort the players by average and exp level
     const sortedAvgArray = Object.entries(mergedAvg).sort((a, b) => {
-        if (a[1].expLevel === 0) return 1; // Move absent players (expLevel = 0) to the end
-        if (b[1].expLevel === 0) return -1; // Move absent players (expLevel = 0) to the end
+        if (a[1].expLevel === -1) return 1; // Move absent players (expLevel = -1) to the end
+        if (b[1].expLevel === -1) return -1; // Move absent players (expLevel = -1) to the end
         if (b[1].fame === a[1].fame) {
             return b[1].expLevel - a[1].expLevel;
         }
@@ -238,7 +250,7 @@ async function fffamilyavg(bot, api, interaction, limit, include_all_players) {
             sortedFamilyClans[clanIndex][1].playersCount += 1;
             playerInfo.targetClan = sortedFamilyClans[clanIndex][1].name; // Add the targetClan value
         } else {
-            if (playerInfo.expLevel == 0) {
+            if (playerInfo.expLevel === -1) {
                 playerInfo.targetClan = "";
                 playerInfo.movement = "❌";
                 continue;
@@ -304,7 +316,9 @@ module.exports = {
                         .setRequired(true))
                 .addIntegerOption(option =>
                     option.setName('limit')
-                        .setDescription('Max weeks to check (from 1 to 10)'))
+                        .setDescription('Max weeks to check (from 1 to 10)')
+                        .setMinValue(1)
+                        .setMaxValue(10))
                 .addBooleanOption(option =>
                     option.setName('include_all_players')
                         .setDescription('Include players curently out of the clan'))
@@ -315,7 +329,9 @@ module.exports = {
                 .setDescription('Replies the players\' averages of the clans\' family !')
                 .addIntegerOption(option =>
                     option.setName('limit')
-                        .setDescription('Max weeks to check (from 1 to 10)'))
+                        .setDescription('Max weeks to check (from 1 to 10)')
+                        .setMinValue(1)
+                        .setMaxValue(10))
                 .addBooleanOption(option =>
                     option.setName('include_all_players')
                         .setDescription('Include players curently out of the clan'))

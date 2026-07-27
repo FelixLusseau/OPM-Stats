@@ -520,7 +520,7 @@ async function excel(scores, fileName, family = false) {
                         };
                     }
                 } else if (i == 5) { // Exp level
-                    if (cellToColor.value == 0)
+                    if (cellToColor.value == -1)
                         cellToColor.value = "Out of clan";
                     if (cellToColor.value < 42 || cellToColor.value == "Out of clan") {
                         cellToColor.fill = {
@@ -559,7 +559,11 @@ async function excel(scores, fileName, family = false) {
                         right: { style: 'medium' },
                     };
                 } else if (family && i == 7) { // Movement
-                    // No color
+                    cellToColor.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FFE6E6E6' } // Neutral gray
+                    };
                     cellToColor.border = {
                         ...cellToColor.border,
                         right: { style: 'medium' },
