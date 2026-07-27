@@ -145,7 +145,8 @@ async function sendCw2HistoryRows(bot, channel, apiResult, limit = 60) {
     }
 
     if (payload.error) {
-        await channel.send(`Unable to fetch CW2 history: ${payload.error}`);
+        // await channel.send(`Unable to fetch CW2 history: ${payload.error}`);
+        console.error(`Unable to fetch CW2 history: ${payload.error}`);
         return false;
     }
 
@@ -245,6 +246,9 @@ async function playerHistory(bot, channel, url, limit = 60) {
 
     // Navigate the page to a URL
     const response = await page.goto(url);
+    const responseInfo = response
+        ? `${response.status()}`
+        : 'no response';
     // console.log(`Response status: ${response.status()} ${response.statusText()}`);
     // console.log('Response details:', {
     //     status: response.status(),
@@ -259,7 +263,7 @@ async function playerHistory(bot, channel, url, limit = 60) {
     // --- Extract the JWT token from the page scripts and call the cw2_history API ---
     try {
         const playerTag = (new URL(url)).pathname.split('/').filter(Boolean).pop();
-        const apiResult = await page.evaluate(async (playerTag) => {
+        const apiResult = await page.evaluate(async ({ playerTag, responseInfo }) => {
             const jwtRegex = /eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g;
             let token = null;
             for (const s of Array.from(document.scripts)) {
@@ -273,7 +277,7 @@ async function playerHistory(bot, channel, url, limit = 60) {
                 const m = bodyText.match(jwtRegex);
                 if (m && m.length) token = m[0];
             }
-            if (!token) return { error: 'token_not_found' };
+            if (!token) return { error: `token_not_found (${responseInfo})` };
 
             // Same-origin request to avoid CORS issues and reuse cookies/session
             const res = await fetch(`/player/cw2_history/${playerTag}`, {
@@ -281,7 +285,7 @@ async function playerHistory(bot, channel, url, limit = 60) {
             });
             const json = await res.json();
             return { json };
-        }, playerTag);
+        }, { playerTag, responseInfo });
 
         // console.log('cw2_history call result:', JSON.stringify(apiResult));
         await browser.close();
