@@ -13,18 +13,22 @@
   "dependencies": {
     "@varandas/clash-royale-api": "^2.3.0",
     "chart": "^0.1.2",
-    "discord.js": "^14.26.4",
+    "discord.js": "^14.27.0",
     "dotenv": "^17.4.2",
     "exceljs": "^4.4.0",
     "fs": "^0.0.1-security",
     "luxon": "^3.7.2",
-    "node-cron": "^4.2.1",
+    "node-cron": "^4.6.0",
     "node-fetch": "^3.3.2",
-    "puppeteer": "^24.43.1",
+    "puppeteer": "^25.4.0",
     "random-useragent": "^0.5.0",
     "sqlite3": "^6.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
+  },
+  "allowScripts": {
+    "puppeteer@25.4.0": true,
+    "sqlite3@6.0.1": true
   }
 }
