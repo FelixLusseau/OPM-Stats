@@ -260,7 +260,7 @@ function generateHtmlTableFromWorksheet(worksheet, family) {
         row.eachCell({ includeEmpty: true }, (cell) => {
             // console.log(cell);
             if (cell.type == 0) { // Empty cell -> add an empty cell in the HTML table
-                html += `<td> </td>\n`;
+                html += `<td style="background-color:#E6E6E6; text-align: center; white-space: nowrap; padding-left: 10px; padding-right: 10px;"> </td>\n`;
             }
             else {
                 let cellColor = null;
@@ -268,6 +268,9 @@ function generateHtmlTableFromWorksheet(worksheet, family) {
                     cellColor = cell.fill.fgColor.argb.substring(2);
                 }
                 const cellValue = escapeHtml(cell.text || '');
+                if (!cellColor) {
+                    cellColor = 'E6E6E6';
+                }
                 if (cell._mergeCount === 1 && cell.type != 1) { // Vertical merged cell
                     html += `<td style="background-color:#${cellColor}; text-align: center; border-right: 1px solid black; white-space: nowrap; padding-left: 10px; padding-right: 10px;" rowspan="2">${cellValue}</td>\n`;
                 } else if (cell._mergeCount === 0 && cell.type == 1) {
@@ -487,7 +490,14 @@ async function excel(scores, fileName, family = false) {
                     ...cellToColor.border,
                     top: { style: 'thin' },
                 };
-                if (cellToColor.value == null) continue; // Skip coloring empty cells
+                if (cellToColor.value == null) {
+                    cellToColor.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FFE6E6E6' } // Neutral gray
+                    };
+                    continue;
+                }
                 if (i == 1) { // Current clan name
                     const cellColor = hashStringToColor(cellToColor.value);
                     cellToColor.fill = {
@@ -598,7 +608,14 @@ async function excel(scores, fileName, family = false) {
                     ...cellToColor.border,
                     bottom: { style: 'thin' },
                 };
-                if (cellToColor.value == null) continue; // Skip coloring empty cells
+                if (cellToColor.value == null) {
+                    cellToColor.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FFE6E6E6' } // Neutral gray
+                    };
+                    continue;
+                }
                 if (i == 1) { // Current clan name
                     const cellColor = hashStringToColor(cellToColor.value);
                     cellToColor.fill = {

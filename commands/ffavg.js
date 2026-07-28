@@ -22,20 +22,26 @@ async function ffavg(bot, api, interaction, clan, limit, include_all_players) {
         return
     }
     const clanMembersMap = {};
-    clanMembers.forEach(clanMember => {
+    for (const clanMember of clanMembers) {
         clanMembersMap[clanMember.tag] = clanMember;
-    });
+    }
+
     // Get the players' exp level individually because the API doesn't provide it anymore in the clan members list
-    let clanPlayers = {};
     for (const clanMember of clanMembers) {
         try {
             const player = await api.getPlayerByTag(clanMember.tag);
-            clanPlayers[clanMember.name] = player?.expLevel;
+            clanMembersMap[clanMember.tag] = {
+                ...clanMember,
+                expLevel: player?.expLevel ?? -1,
+            };
         } catch (e) {
             console.error(`Error fetching player data for ${clanMember.name} (${clanMember.tag}):`, e);
+            clanMembersMap[clanMember.tag] = {
+                ...clanMember,
+                expLevel: -1,
+            };
         }
     }
-    // console.log(clanPlayers);
 
     // Get the clans' score history
     let avg = await functions.fetchHist(clan.substring(1));
@@ -60,9 +66,10 @@ async function ffavg(bot, api, interaction, clan, limit, include_all_players) {
                     avgArray[participant.name]['decksUsed'] = [participant.decksUsed, null, null, null, null, null, null, null, null, null];
 
                     try { // May be empty and fail if the player is not in the clan anymore
-                        avgArray[participant.name]['expLevel'] = clanPlayers[participant.name];
-                        avgArray[participant.name]['role'] = clanMembersMap[participant.tag].role;
-                        if (clanMembersMap[participant.tag].role == 'coLeader' || clanMembersMap[participant.tag].role == 'leader')
+                        const member = clanMembersMap[participant.tag];
+                        avgArray[participant.name]['expLevel'] = member?.expLevel ?? -1;
+                        avgArray[participant.name]['role'] = member?.role ?? '';
+                        if (member?.role === 'coLeader' || member?.role === 'leader')
                             avgArray[participant.name]['staff'] = true;
                         else
                             avgArray[participant.name]['staff'] = false;
@@ -101,9 +108,10 @@ async function ffavg(bot, api, interaction, clan, limit, include_all_players) {
                         avgArray[participant.name]['decksUsed'][p] = participant.decksUsed;
 
                         try { // May be empty and fail if the player is not in the clan anymore
-                            avgArray[participant.name]['expLevel'] = clanPlayers[participant.name];
-                            avgArray[participant.name]['role'] = clanMembersMap[participant.tag].role;
-                            if (clanMembersMap[participant.tag].role == 'coLeader' || clanMembersMap[participant.tag].role == 'leader')
+                            const member = clanMembersMap[participant.tag];
+                            avgArray[participant.name]['expLevel'] = member?.expLevel ?? -1;
+                            avgArray[participant.name]['role'] = member?.role ?? '';
+                            if (member?.role === 'coLeader' || member?.role === 'leader')
                                 avgArray[participant.name]['staff'] = true;
                             else
                                 avgArray[participant.name]['staff'] = false;
@@ -123,9 +131,10 @@ async function ffavg(bot, api, interaction, clan, limit, include_all_players) {
                         avgArray[participant.name]['decksUsed'][p] = participant.decksUsed;
 
                         try { // May be empty and fail if the player is not in the clan anymore
-                            avgArray[participant.name]['expLevel'] = clanPlayers[participant.name];
-                            avgArray[participant.name]['role'] = clanMembersMap[participant.tag].role;
-                            if (clanMembersMap[participant.tag].role == 'coLeader' || clanMembersMap[participant.tag].role == 'leader')
+                            const member = clanMembersMap[participant.tag];
+                            avgArray[participant.name]['expLevel'] = member?.expLevel ?? -1;
+                            avgArray[participant.name]['role'] = member?.role ?? '';
+                            if (member?.role === 'coLeader' || member?.role === 'leader')
                                 avgArray[participant.name]['staff'] = true;
                             else
                                 avgArray[participant.name]['staff'] = false;
