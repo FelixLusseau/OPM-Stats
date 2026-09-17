@@ -27,27 +27,27 @@ module.exports = {
     name: Events.MessageCreate,
     async execute(bot, api, message) {
         if (message.author.tag == bot.user.tag) return; // Ignore messages from the bot itself
-        let placeholder = null
-        // if (message.content == 'ds') {
-        //     if (tag = await functions.extractDeckShopTag({})) {
-        // Check if the message is a DeckShop joining message and send the RoyaleAPI Profile url into the channel
-        if (message.author.tag === 'Deck Shop Logs#0000') {
-            if (tag = await functions.extractDeckShopTag(message)) {
-                console.log(`\x1b[36m[${new Date().toISOString()}]\x1b[0m Tag received from DeckShop bot:`, tag);
-                placeholder = await message.channel.send("Tag received from DeckShop bot !\nSearching... <a:Mag:1186624382982963290>") // Send a placeholder message to show that the bot is working
+        let placeholder = null;
+
+        // Check if the message is from the DeckShop app and send the RoyaleAPI Profile url into the channel
+        if (message.author.bot && message.author.id === '1037127674776276993') {
+            const tag = await functions.extractDeckShopTag(message);
+            if (tag) {
+                console.log(`\x1b[36m[${new Date().toISOString()}]\x1b[0m Tag received from DeckShop app:`, tag);
+                placeholder = await message.channel.send("Tag received from DeckShop app !\nSearching... <a:Mag:1186624382982963290>"); // Send a placeholder message to show that the bot is working
                 await message.channel.sendTyping();
-                royaleAPIHistory(bot, message, placeholder, tag.substring(1).toUpperCase())
+                royaleAPIHistory(bot, message, placeholder, tag.substring(1).toUpperCase());
             }
         }
 
         // Check if the message contains a tag and send the RoyaleAPI Profile url into the channel
-        const regex = /\#[a-zA-Z0-9]{6,10}\b/g
+        const regex = /\#[a-zA-Z0-9]{6,10}\b/g;
         if (message.content.search(regex) >= 0) {
             console.log(`\x1b[36m[${new Date().toISOString()}]\x1b[0m Tag received:`, message.content.match(regex)[0]);
-            placeholder = await message.channel.send("Tag received !\nSearching... <a:Mag:1186624382982963290>") // Send a placeholder message to show that the bot is working
+            placeholder = await message.channel.send("Tag received !\nSearching... <a:Mag:1186624382982963290>"); // Send a placeholder message to show that the bot is working
             await message.channel.sendTyping();
             const tag = message.content.match(regex)[0].substring(1).toUpperCase();
-            royaleAPIHistory(bot, message, placeholder, tag)
+            royaleAPIHistory(bot, message, placeholder, tag);
         }
     }
 };
