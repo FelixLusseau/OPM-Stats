@@ -28,7 +28,7 @@
     "nodemon": "^3.1.14"
   },
   "allowScripts": {
-    "puppeteer@25.4.0": true,
-    "sqlite3@6.0.1": true
+    "sqlite3@6.0.1": true,
+    "puppeteer@25.11.0": true
   }
 }
