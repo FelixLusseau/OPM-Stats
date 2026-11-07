@@ -16,6 +16,7 @@ async function ffrace(bot, api, interaction, channel, clan, report) {
     let Labels = [];
     let Datas = [];
     let Race = "";
+    let reportRace = [];
 
     let RiverRace = null
     try {
@@ -69,14 +70,14 @@ async function ffrace(bot, api, interaction, channel, clan, report) {
     for (let i = 0; i < clans.length; i++) {
         let decksRemaining = 200
         let playersRemaining = 50
-        for (let j = 0; i < clans[i].participants.length; j++) {
-            if (clans[i].participants[j] == undefined) // strange bug to correct
-                break
+        for (let j = 0; j < clans[i].participants.length; j++) {
+            // if (clans[i].participants[j] == undefined) // strange bug to correct
+            //     break
             decksRemaining -= clans[i].participants[j].decksUsedToday
             if (clans[i].participants[j].decksUsedToday != 0)
                 playersRemaining -= 1
         }
-        ratio = await functions.ratio(RiverRace, decksRemaining, i) // Calculate the ratio of the clan
+        const ratio = await functions.ratio(RiverRace, decksRemaining, i) // Calculate the ratio of the clan
         const estimate = Math.floor(ratio) * ((RiverRace.periodType == "colosseum") ? 800 : 200)// Invert of ratio calculation where the points are the unknown value
 
         data[clans[i].tag] = { "decksRemaining": decksRemaining, "playersRemaining": playersRemaining, "ratio": ratio, "estimate": estimate, "estimatedPosition": 0 }
@@ -129,13 +130,16 @@ async function ffrace(bot, api, interaction, channel, clan, report) {
 
         const ratio = sortedData[clans[i].tag].ratio
         const estimate = sortedData[clans[i].tag].estimate
+        const clanName = clans[i].tag == clan ? "**" + clans[i].name + "**" : clans[i].name
+        const ratioEmote = functions.ratioEmote(ratio)
 
         if (RiverRace.periodType != "colosseum" && clans[i].fame >= 10000) {
             Race += "- __" + (clans[i].tag == clan ? "**" + clans[i].name + "**" : clans[i].name) + "__ : <:Reinearcheres:1216136457601683588> War finished \n\n"
+            reportRace.push("- __" + clanName + "__ : " + points + " pts | " + ratioEmote + " Ratio : **" + ratio + "**")
             continue
         }
         // Make the string with the clan name, tag, points, ratio, decks remaining and players remaining
-        let ratioEmote = functions.ratioEmote(ratio)
+        reportRace.push("- __" + clanName + "__ : " + points + " pts | " + ratioEmote + " Ratio : **" + ratio + "**")
 
         Race += "- __" + (clans[i].tag == clan ? "**" + clans[i].name + "**" : clans[i].name) // Bold the clan name if it's the clan the user asked for
             + "__ :\n<:Hashtag:1186369411439923220> Tag : " + clans[i].tag
@@ -185,7 +189,7 @@ async function ffrace(bot, api, interaction, channel, clan, report) {
         }
     }
 
-    return clanPos
+    return report ? { position: clanPos, summary: reportRace.join("\n") } : clanPos
 }
 
 module.exports = {

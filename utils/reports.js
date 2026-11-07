@@ -14,7 +14,10 @@ async function report(bot, api, interaction, pingBool, channel, clan, guildID) {
     reportEmbed
         .setTitle('**__Daily War Report__ :**')
         .setDescription(
-            '**__Clan position__ : ' + race + '**\n\n'
+            '**__Clan position__ : ' + race.position + '**\n\n'
+            + '**__Current war day__ :**\n'
+            + race.summary
+            + '\n\n--------------------------------------\n'
             + '**__Players\' attacks__ :**\n'
             + attacks
             + '\n--------------------------------------\n'
