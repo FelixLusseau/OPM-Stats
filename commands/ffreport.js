@@ -3,7 +3,7 @@ const reports = require('../utils/reports.js');
 const functions = require('../utils/functions.js');
 
 async function ffreport(bot, api, interaction, clan) {
-    await interaction.reply({ ephemeral: false, content: "War Report" });
+    await interaction.reply({ content: "War Report" });
     if (interaction.options.getString('clan')) {
         clan = interaction.options.getString('clan');
         if (functions.isRegisteredClan(bot, interaction, interaction.channel, clan) == false) // Check if the clan is registered

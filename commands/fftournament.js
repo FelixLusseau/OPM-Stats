@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
 const fs = require('fs');
 const functions = require('../utils/functions.js');
 
@@ -113,7 +113,7 @@ function createCollector(interaction, sessionId) {
             }
         } catch (error) {
             console.error('Error handling interaction:', error);
-            await i.reply({ content: 'An error occurred while processing your selection.', ephemeral: true });
+            await i.reply({ content: 'An error occurred while processing your selection.', flags: MessageFlags.Ephemeral });
         }
     });
 
@@ -784,7 +784,7 @@ function createPassWinnerCollector(interaction, sessionId) {
             }
         } catch (error) {
             console.error('Error handling pass winner interaction:', error);
-            await i.reply({ content: 'An error occurred while processing your selection.', ephemeral: true });
+            await i.reply({ content: 'An error occurred while processing your selection.', flags: MessageFlags.Ephemeral });
         }
     });
 
@@ -988,7 +988,7 @@ function createBracketCollector(interaction, sessionId) {
             }
         } catch (error) {
             console.error('Error handling bracket interaction:', error);
-            await i.reply({ content: 'An error occurred: ' + error.message, ephemeral: true });
+            await i.reply({ content: 'An error occurred: ' + error.message, flags: MessageFlags.Ephemeral });
         }
     });
 
